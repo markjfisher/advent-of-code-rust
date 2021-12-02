@@ -1,8 +1,10 @@
 # Advent Of Code in Rust
 
-My rust solutions to [Advent of Code](https://adventofcode.com/) puzzles.
+![rust](https://img.shields.io/badge/language-rust-0b7261?style=flat-square&logo=rust)
 
-This project uses [aoc_runner](https://github.com/gobanos/aoc-runner) and [cargo_aoc](https://github.com/gobanos/cargo-aoc)
+My rust solutions to [Advent of Code][aoc] puzzles.
+
+This project uses [`aoc-runner`][aoc-runner] and [`cargo-aoc`][cargo-aoc]
 
 ## Running Solutions
 
@@ -64,3 +66,11 @@ pub fn input_generator(input: &str) -> Vec<Gift> {
         }).collect()
 }
 ```
+
+
+---
+
+[aoc]: https://adventofcode.com/
+[rust]: https://rust-lang.org
+[cargo-aoc]: https://github.com/gobanos/cargo-aoc
+[aoc-runner]: https://github.com/gobanos/aoc-runner
