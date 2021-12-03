@@ -21,9 +21,13 @@ To run a release version (much quicker):
     cargo build --release
     cargo run --release
 
+To run tests:
+
+    cargo test
+
 ## New days
 
-cargo_aoc can be used to get your input data, you need to set your aoc web session id with
+cargo-aoc can be used to get your input data, you need to set your aoc web session id with
 
     cargo aoc credentials -s {token}  # get this from Application tab in chrome tools for aoc website
 
@@ -43,30 +47,7 @@ pub fn input_generator(input: &str) -> Vec<u32> {
 }
 ```
 
-Other examples are in the cargo_aoc docs, e.g. parsing lines of "{L}x{W}x{H}":
-
-```rust
-pub struct Gift {
-    l: u32,
-    w: u32,
-    h: u32
-}
-
-#[aoc_generator(day2)]
-pub fn input_generator(input: &str) -> Vec<Gift> {
-    input
-        .lines()
-        .map(|l| {
-            let mut gift = l.trim().split('x').map(|d| d.parse().unwrap());
-            (
-                gift.next().unwrap(),
-                gift.next().unwrap(),
-                gift.next().unwrap(),
-            )
-        }).collect()
-}
-```
-
+Other examples are in the cargo_aoc docs and in the worked solutions, e.g. [src/day_03.rs](src/day_03.rs)
 
 ---
 
