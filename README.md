@@ -8,18 +8,15 @@ This project uses [`aoc-runner`][aoc-runner] and [`cargo-aoc`][cargo-aoc]
 
 ## Running Solutions
 
-To run, cd into the appropriate year and type
+cargo-aoc does not support workspaces and multi-year projects, so you have to run them
+as binaries.
 
-    cargo aoc
+```bash
+cargo build
+cargo run --bin aoc2021
+```
 
-To benchmark code run:
-
-    cargo aoc bench
-
-To run a release version (much quicker):
-
-    cargo build --release
-    cargo run --release
+To run a release version add `--release` to the above arguments
 
 To run tests:
 
@@ -34,6 +31,7 @@ cargo-aoc can be used to get your input data, you need to set your aoc web sessi
 then you can just run
 
     cargo aoc input [ -d {day} -y {year} ] # defaults to today's date
+    cargo aoc input -d 4 -y 2021
 
 ## Generators
 

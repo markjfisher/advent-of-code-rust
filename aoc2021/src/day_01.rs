@@ -1,7 +1,5 @@
 use itertools::Itertools;
 
-use crate::common;
-
 #[aoc_generator(day1)]
 pub fn input_generator(input: &str) -> Vec<u32> {
     common::input_vec(input)

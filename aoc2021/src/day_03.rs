@@ -53,8 +53,8 @@ fn calc_rating(bit_length: u32, data: &Vec<u32>, bit_fn: &dyn Fn(&Vec<u32>, u32)
     let mut current_bit = 0;
     while (mut_arr.len() > 1) && (current_bit < bit_length) {
         let current_pow2 = 1 << (bit_length - current_bit - 1);
-        let msb_val = bit_fn(&mut_arr, current_pow2);
-        mut_arr.retain(|d| d.bitand(current_pow2) == msb_val);
+        let val = bit_fn(&mut_arr, current_pow2);
+        mut_arr.retain(|d| d.bitand(current_pow2) == val);
         current_bit = current_bit + 1;
     }
     *mut_arr.first().unwrap()
