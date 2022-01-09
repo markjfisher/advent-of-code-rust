@@ -12,3 +12,4 @@ common = { path = "../common" }
 aoc-runner = "0.3.0"
 aoc-runner-derive = "0.3.0"
 itertools = "0.10.1"
+rust-crypto = "0.2.36"
