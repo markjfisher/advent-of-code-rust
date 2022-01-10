@@ -45,18 +45,18 @@ mod tests {
 
     #[test]
     fn can_test_input_p1() {
-        assert_eq!(part1(create_test_string()), 12);
+        assert_eq!(part1(create_test_string().as_str()), 12);
     }
 
     #[test]
     fn can_test_input_p2() {
-        assert_eq!(part2(create_test_string()), 19);
+        assert_eq!(part2(create_test_string().as_str()), 19);
     }
 
-    fn create_test_string() -> &'static str {
-        r#"""
+    fn create_test_string() -> String {
+        String::from(r#"""
             "abc"
             "aaa\"aaa"
-            "\x27""#
+            "\x27""#)
     }
 }
