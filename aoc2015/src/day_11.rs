@@ -37,14 +37,16 @@ fn is_valid(password: &mut Vec<u8>) -> bool {
     let has_sequence_of_3_increasing = password.windows(3).any(|ws| {
         ws[1] == ws[0] + 1 && ws[2] == ws[0] + 2
     });
+    if !has_sequence_of_3_increasing { return false; }
+
     let includes_o_i_l = password.iter().any(|b| *b == 8 || *b == 11 || *b == 14);
+    if includes_o_i_l { return false; }
 
     // use a hashset to remove duplicates. this fixes "aaa" having two pairs of "aa" "aa" without caring it shouldn't have been included either
     let pairs = password.windows(2).filter(|ws| {
         ws[0] == ws[1]
     }).map(|pair| pair.iter().join("")).collect::<HashSet<String>>();
-
-    has_sequence_of_3_increasing && !includes_o_i_l && pairs.len() >= 2
+    pairs.len() >= 2
 }
 
 fn increment_password(password: &mut Vec<u8>, pl: usize) {
