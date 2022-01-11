@@ -38,6 +38,8 @@ fn is_valid(password: &mut Vec<u8>) -> bool {
         ws[1] == ws[0] + 1 && ws[2] == ws[0] + 2
     });
     let includes_o_i_l = password.iter().any(|b| *b == 8 || *b == 11 || *b == 14);
+
+    // use a hashset to remove duplicates. this fixes "aaa" having two pairs of "aa" "aa" without caring it shouldn't have been included either
     let pairs = password.windows(2).filter(|ws| {
         ws[0] == ws[1]
     }).map(|pair| pair.iter().join("")).collect::<HashSet<String>>();
@@ -61,6 +63,15 @@ fn increment_digit(ds: &mut Vec<u8>, digit: usize, inc_next: &mut bool) -> bool 
         if ds[digit] > 25 {
             ds[digit] = 0;
             *inc_next = true;
+        }
+        // mini optimisation - we can skip i/o/l values and everything after them becomes 0
+        // reduces from 13ms to 9ms and 48ms to 34ms respectively for part1, part2.
+        else if ds[digit] == 8 || ds[digit] == 11 || ds[digit] == 14 {
+            // this can never trip the rollover
+            ds[digit] = ds[digit] + 1;
+            for i in (digit+1)..ds.len() {
+                ds[i] = 0;
+            }
         }
     }
     *inc_next
