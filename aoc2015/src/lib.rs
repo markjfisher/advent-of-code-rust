@@ -7,6 +7,8 @@ extern crate crypto;
 extern crate cached;
 extern crate regex;
 extern crate serde_json;
+// extern crate lp_modeler;
+// extern crate ai_kit;
 
 pub mod day_01;
 pub mod day_02;
@@ -22,5 +24,6 @@ pub mod day_11;
 pub mod day_12;
 pub mod day_13;
 pub mod day_14;
+pub mod day_15;
 
 aoc_lib! { year = 2015 }

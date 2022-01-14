@@ -55,16 +55,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aoc2021"
-version = "0.1.0"
-dependencies = [
- "aoc-runner",
- "aoc-runner-derive",
- "common",
- "itertools",
-]
-
-[[package]]
 name = "async-mutex"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

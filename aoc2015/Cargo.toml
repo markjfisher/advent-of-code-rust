@@ -16,3 +16,11 @@ rust-crypto = "0.2.36"
 cached = "0.26.2"
 regex = "1.5.4"
 serde_json = "1.0.74"
+
+#ai_kit = "0.1.0"
+#lp-modeler = "0.5.0"
+#coin_cbc_sys = "0.1.1"
+#coin_cbc = "0.1.6"
+
+#[features]
+#lp_modeler = "native_coin_cbc"
