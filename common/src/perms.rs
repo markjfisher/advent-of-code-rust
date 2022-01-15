@@ -1,6 +1,6 @@
-pub trait Circular<T> {
-    fn state(&self) -> T;
-    fn inc(&mut self);
+pub trait Circular<'a, T: 'a> {
+    fn state(&'a self) -> T;
+    fn inc(&'a mut self);
     fn is_zero(&self) -> bool;
     fn has_next(&self) -> bool;
 }
@@ -16,7 +16,7 @@ impl Ring {
     fn new(size: i32, offset: i32) -> Ring { Ring { size, offset, state: 0 } }
 }
 
-impl Circular<i32> for Ring {
+impl<'a> Circular<'a, i32> for Ring {
     fn state(&self) -> i32 { self.state + self.offset }
     fn inc(&mut self) { self.state = (1 + self.state) % self.size; }
     fn is_zero(&self) -> bool { self.state == 0 }
@@ -59,9 +59,10 @@ impl IntCombinations {
     }
 }
 
-impl Circular<Vec<Ring>> for IntCombinations {
-    fn state(&self) -> Vec<Ring> {
-        self.state.clone()
+impl<'a> Circular<'a, Vec<&'a Ring>> for IntCombinations {
+    fn state(&self) -> Vec<&Ring> {
+        let rings: Vec<_> = self.state.iter().collect();
+        rings
     }
     fn inc(&mut self) {
         for r in self.state.iter_mut() {
@@ -97,7 +98,7 @@ impl Iterator for IntCombinationsIntoIterator {
         if self.ended { return None; };
         if self.started { self.rings.inc(); } else { self.started = true; }
         if !self.rings.has_next() { self.ended = true; }
-        // convert the Vec<Ring> to Vec<i32> for their current state, must use r.state() to add the offset
+        // convert the Vec<&Ring> to Vec<i32> for their current state, must use r.state() to get the offset added
         let mut ring_states: Vec<_> = self.rings.state().iter().map(|r| r.state()).collect();
         ring_states.reverse();
         Option::Some(ring_states)
