@@ -1,5 +1,5 @@
 [package]
-name = "aoc2015"
+name = "aoc2023"
 version = "0.1.0"
 edition = "2021"
 authors = ["Mark Fisher <mark.j.fisher@gmail.com>"]
@@ -12,15 +12,7 @@ common = { path = "../common" }
 aoc-runner = "0.3.0"
 aoc-runner-derive = "0.3.0"
 itertools = "0.12.0"
-rust-crypto = "0.2.36"
-cached = "0.46.1"
-regex = "1.5.4"
-serde_json = "1.0.74"
-
-#ai_kit = "0.1.0"
-#lp-modeler = "0.5.0"
-#coin_cbc_sys = "0.1.1"
-#coin_cbc = "0.1.6"
-
-#[features]
-#lp_modeler = "native_coin_cbc"
+#rust-crypto = "0.2.36"
+#cached = "0.46.1"
+#regex = "1.5.4"
+#serde_json = "1.0.74"

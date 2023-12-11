@@ -26,10 +26,11 @@ To run tests:
 
 cargo-aoc can be used to get your input data, you need to set your aoc web session id with
 
-    cargo aoc credentials -s {token}  # get this from Application tab in chrome tools for aoc website
+    cargo aoc credentials {token}  # get this from Application tab in chrome tools for aoc website
 
 then you can just run
 
+    cd aoc2023   # or whatever your year is
     cargo aoc input [ -d {day} -y {year} ] # defaults to today's date
     cargo aoc input -d 4 -y 2021
 
