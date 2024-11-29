@@ -24,7 +24,7 @@ fn play_look_and_say(s: &str, n: i32) -> String {
 
 pub fn split_text(s: &str) -> Vec<String> {
     let mut r = Vec::new();
-    for (_, group) in &s.chars().into_iter().group_by(|e| *e) {
+    for (_, group) in &s.chars().into_iter().chunk_by(|e| *e) {
         r.push(group.map(|e| e.to_string()).join(""));
     }
     r
