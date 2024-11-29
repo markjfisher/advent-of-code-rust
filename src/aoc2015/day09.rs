@@ -16,8 +16,7 @@ impl Location {
     }
 }
 
-#[aoc_generator(day9)]
-pub fn input_generator(input: &str) -> (HashSet<Location>, HashMap<(Location, Location), i32>) {
+pub fn parse(input: &str) -> ((i32, i32), HashSet<Location>, HashMap<(Location, Location), i32>) {
     let mut cost_map = HashMap::new();
     let mut locations: HashSet<Location> = HashSet::new();
 
@@ -40,25 +39,22 @@ pub fn input_generator(input: &str) -> (HashSet<Location>, HashMap<(Location, Lo
 
     });
 
-    (locations, cost_map)
+    let perms = perms_of(&locations);
+    let (min, max) = perms.iter()
+        .map(|perm| cost_of(perm, &cost_map))
+        .fold((i32::MAX, i32::MIN), |(min, max), cost| {
+            (min.min(cost), max.max(cost))
+        });
+
+    ((min, max), locations, cost_map)
 }
 
-#[aoc(day9, part1)]
-pub fn part1(input: &(HashSet<Location>, HashMap<(Location, Location), i32>)) -> i32 {
-    let (locations, cost_map) = input;
-    let perms = perms_of(locations);
-    perms.iter().map(|perm| {
-        cost_of(perm, cost_map)
-    }).min().unwrap()
+pub fn part1(input: &((i32, i32), HashSet<Location>, HashMap<(Location, Location), i32>)) -> i32 {
+    input.0.0
 }
 
-#[aoc(day9, part2)]
-pub fn part2(input: &(HashSet<Location>, HashMap<(Location, Location), i32>)) -> i32 {
-    let (locations, cost_map) = input;
-    let perms = perms_of(locations);
-    perms.iter().map(|perm| {
-        cost_of(perm, cost_map)
-    }).max().unwrap()
+pub fn part2(input: &((i32, i32), HashSet<Location>, HashMap<(Location, Location), i32>)) -> i32 {
+    input.0.1
 }
 
 fn cost_of(permutation: &Vec<&Location>, cost_map: &HashMap<(Location, Location), i32>) -> i32 {
@@ -99,9 +95,11 @@ mod tests {
 
     #[test]
     fn can_parse_input_data() {
-        let (locations, cost_map) = input_generator(&create_test_data());
+        let ((min, max), locations, cost_map) = parse(&create_test_data());
         assert_eq!(locations.len(), 3);
         assert_eq!(cost_map.len(), 3);
+        assert_eq!(min, 605);
+        assert_eq!(max, 982);
 
         assert!(locations.contains(&Location::new("London")));
         assert!(locations.contains(&Location::new("Dublin")));
@@ -118,13 +116,13 @@ mod tests {
 
     #[test]
     fn can_do_part1_on_test_data() {
-        let data = input_generator(&create_test_data());
+        let data = parse(&create_test_data());
         assert_eq!(part1(&data), 605);
     }
 
     #[test]
     fn can_do_part2_on_test_data() {
-        let data = input_generator(&create_test_data());
+        let data = parse(&create_test_data());
         assert_eq!(part2(&data), 982);
     }
 

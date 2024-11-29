@@ -1,9 +1,11 @@
-#[aoc(day8, part1)]
+pub fn parse(input: &str) -> &str {
+    input.trim()
+}
+
 pub fn part1(input: &str) -> i32 {
     input.lines().map(|l| diff_decoded(l.trim()) ).sum()
 }
 
-#[aoc(day8, part2)]
 pub fn part2(input: &str) -> i32 {
     input.lines().map(|l| diff_encoded(l.trim()) ).sum()
 }
