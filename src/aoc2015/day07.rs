@@ -13,8 +13,7 @@ pub enum Signal {
     Not(String),
 }
 
-#[aoc_generator(day7)]
-pub fn input_generator(input: &str) -> HashMap<String, Signal> {
+pub fn parse(input: &str) -> HashMap<String, Signal> {
     let mut signals = HashMap::new();
 
     let re_assign = Regex::new(r"^(\w+) -> (\D+)$").unwrap();
@@ -108,12 +107,10 @@ fn get_val(signals: &HashMap<String, Signal>, cache: &mut HashMap<String, u16>, 
     r
 }
 
-#[aoc(day7, part1)]
 pub fn part1(signals: &HashMap<String, Signal>) -> u16 {
     solve(signals, "a", None)
 }
 
-#[aoc(day7, part2)]
 pub fn part2(signals: &HashMap<String, Signal>) -> u16 {
     // part 1 gives 16076, which we plug into b value as starting value
     solve(signals, "a", Some(16076))
@@ -132,7 +129,7 @@ mod tests {
 
     #[test]
     fn can_parse_and_input() {
-        let map = input_generator("lf AND lq -> ls");
+        let map = parse("lf AND lq -> ls");
         let signal = map.get("ls").unwrap();
         let expected = Signal::And("lf".to_string(), "lq".to_string());
         assert_eq!(*signal, expected)
@@ -140,7 +137,7 @@ mod tests {
 
     #[test]
     fn can_parse_assign_input() {
-        let map = input_generator("100 -> x");
+        let map = parse("100 -> x");
         let signal = map.get("x").unwrap();
         let expected = Signal::Assign("100".to_string());
         assert_eq!(*signal, expected)
@@ -148,7 +145,7 @@ mod tests {
 
     #[test]
     fn can_parse_lshift_input() {
-        let map = input_generator("ip LSHIFT 15 -> it");
+        let map = parse("ip LSHIFT 15 -> it");
         let signal = map.get("it").unwrap();
         let expected = Signal::LShift("ip".to_string(), 15);
         assert_eq!(*signal, expected)
@@ -156,7 +153,7 @@ mod tests {
 
     #[test]
     fn can_parse_not_input() {
-        let map = input_generator("NOT fx -> fy");
+        let map = parse("NOT fx -> fy");
         let signal = map.get("fy").unwrap();
         let expected = Signal::Not("fx".to_string());
         assert_eq!(*signal, expected)
@@ -164,7 +161,7 @@ mod tests {
 
     #[test]
     fn can_parse_or_input() {
-        let map = input_generator("et OR fe -> ff");
+        let map = parse("et OR fe -> ff");
         let signal = map.get("ff").unwrap();
         let expected = Signal::Or("et".to_string(), "fe".to_string());
         assert_eq!(*signal, expected)
@@ -172,7 +169,7 @@ mod tests {
 
     #[test]
     fn can_parse_rshift_input() {
-        let map = input_generator("ip RSHIFT 15 -> it");
+        let map = parse("ip RSHIFT 15 -> it");
         let signal = map.get("it").unwrap();
         let expected = Signal::RShift("ip".to_string(), 15);
         assert_eq!(*signal, expected)
@@ -181,7 +178,7 @@ mod tests {
     #[test]
     fn can_do_test_data() {
         let input = create_test_data();
-        let signals = input_generator(&input);
+        let signals = parse(&input);
         assert_eq!(solve(&signals, "d", None), 72);
         assert_eq!(solve(&signals, "e", None), 507);
         assert_eq!(solve(&signals, "f", None), 492);
