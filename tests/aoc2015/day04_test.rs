@@ -1,4 +1,4 @@
-use aoc2015::day04::*;
+use aoc::aoc2015::day04::*;
 
 #[test]
 // If your secret key is abcdef, the answer is 609043, because the MD5 hash of abcdef609043
