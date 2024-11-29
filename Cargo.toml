@@ -1,12 +1,14 @@
-[workspace]
-resolver = "2"
+[package]
+name = "aoc"
+version = "0.2.0"
+edition = "2021"
+authors = ["Mark Fisher <mark.j.fisher@gmail.com>"]
 
-members = [
-    "common",
-    "aoc2021",
-]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-exclude = [
-    "aoc2015",
-    "aoc2023",
-]
+[dependencies]
+itertools = "0.13.0"
+rust-crypto = "0.2.36"
+cached = "0.54.0"
+regex = "1.5.4"
+serde_json = "1.0.74"
