@@ -87,7 +87,7 @@ fn aoc2015() -> Vec<Solution> {
         solution!(aoc2015, day01),
         solution!(aoc2015, day02),
         solution!(aoc2015, day03),
-        // solution!(aoc2015, day04),
+        solution!(aoc2015, day04),
         // solution!(aoc2015, day05),
         // solution!(aoc2015, day06),
         // solution!(aoc2015, day07),
