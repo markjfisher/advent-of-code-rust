@@ -9,11 +9,6 @@ impl Location {
     pub fn new(s: &str) -> Location {
         Location(s.to_string())
     }
-
-    // I'm not sure about this. should I just be using the refs instead of copying them around?
-    pub fn from(l: &Location) -> Location {
-        Location::new(l.0.to_string().as_str())
-    }
 }
 
 pub fn parse(input: &str) -> (i32, i32) {
@@ -59,16 +54,14 @@ pub fn part2(input: &(i32, i32)) -> i32 {
 
 fn cost_of(permutation: &Vec<&Location>, cost_map: &FastMap<(Location, Location), i32>) -> i32 {
     permutation.windows(2).map(|w| {
-        let (loc_1, loc_2) = (w[0], w[1]);
-        let loc_pair = ordered_location_pair(loc_1, loc_2);
+        let loc_pair = if w[0].0 <= w[1].0 { 
+            (Location::new(&w[0].0), Location::new(&w[1].0))
+        } else {
+            (Location::new(&w[1].0), Location::new(&w[0].0))
+        };
         cost_map.get(&loc_pair).unwrap()
     }).sum()
 }
-
-fn ordered_location_pair(loc_1: &Location, loc_2: &Location) -> (Location, Location) {
-    if loc_1.0 <= loc_2.0 { (Location::from(loc_1), Location::from(loc_2)) } else { (Location::from(loc_2), Location::from(loc_1)) }
-}
-
 
 pub fn perms_of(locations: &FastSet<Location>) -> Vec<Vec<&Location>> {
     locations.iter()
