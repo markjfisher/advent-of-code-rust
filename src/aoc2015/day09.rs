@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use crate::util::hash::*;
 
 use itertools::Itertools;
 
@@ -16,9 +16,9 @@ impl Location {
     }
 }
 
-pub fn parse(input: &str) -> ((i32, i32), HashSet<Location>, HashMap<(Location, Location), i32>) {
-    let mut cost_map = HashMap::new();
-    let mut locations: HashSet<Location> = HashSet::new();
+pub fn parse(input: &str) -> (i32, i32) {
+    let mut cost_map = FastMap::default();
+    let mut locations: FastSet<Location> = FastSet::default();
 
     input.lines().for_each(|l| {
         let l = l.trim();
@@ -46,18 +46,18 @@ pub fn parse(input: &str) -> ((i32, i32), HashSet<Location>, HashMap<(Location, 
             (min.min(cost), max.max(cost))
         });
 
-    ((min, max), locations, cost_map)
+    (min, max)
 }
 
-pub fn part1(input: &((i32, i32), HashSet<Location>, HashMap<(Location, Location), i32>)) -> i32 {
-    input.0.0
+pub fn part1(input: &(i32, i32)) -> i32 {
+    input.0
 }
 
-pub fn part2(input: &((i32, i32), HashSet<Location>, HashMap<(Location, Location), i32>)) -> i32 {
-    input.0.1
+pub fn part2(input: &(i32, i32)) -> i32 {
+    input.1
 }
 
-fn cost_of(permutation: &Vec<&Location>, cost_map: &HashMap<(Location, Location), i32>) -> i32 {
+fn cost_of(permutation: &Vec<&Location>, cost_map: &FastMap<(Location, Location), i32>) -> i32 {
     permutation.windows(2).map(|w| {
         let (loc_1, loc_2) = (w[0], w[1]);
         let loc_pair = ordered_location_pair(loc_1, loc_2);
@@ -70,7 +70,7 @@ fn ordered_location_pair(loc_1: &Location, loc_2: &Location) -> (Location, Locat
 }
 
 
-pub fn perms_of(locations: &HashSet<Location>) -> Vec<Vec<&Location>> {
+pub fn perms_of(locations: &FastSet<Location>) -> Vec<Vec<&Location>> {
     locations.iter()
         .permutations(locations.len()).filter(|v| v.first().unwrap().0 <= v.last().unwrap().0)
         .collect()
@@ -82,36 +82,22 @@ mod tests {
 
     #[test]
     fn test_perms() {
-        let data = HashSet::from([
+        let data: FastSet<_> = [
             Location::new("a"),
             Location::new("b"),
             Location::new("c"),
             Location::new("d"),
             Location::new("e"),
-        ]);
+        ].into_iter().collect();
         let permutations = perms_of(&data);
         assert_eq!(permutations.len(), 60);
     }
 
     #[test]
     fn can_parse_input_data() {
-        let ((min, max), locations, cost_map) = parse(&create_test_data());
-        assert_eq!(locations.len(), 3);
-        assert_eq!(cost_map.len(), 3);
+        let (min, max) = parse(&create_test_data());
         assert_eq!(min, 605);
         assert_eq!(max, 982);
-
-        assert!(locations.contains(&Location::new("London")));
-        assert!(locations.contains(&Location::new("Dublin")));
-        assert!(locations.contains(&Location::new("Belfast")));
-
-        let loc_pair_1 = (Location::new("Belfast"), Location::new("Dublin"));
-        let loc_pair_2 = (Location::new("Belfast"), Location::new("London"));
-        let loc_pair_3 = (Location::new("Dublin"), Location::new("London"));
-
-        assert_eq!(cost_map.get(&loc_pair_1).unwrap(), &141);
-        assert_eq!(cost_map.get(&loc_pair_2).unwrap(), &518);
-        assert_eq!(cost_map.get(&loc_pair_3).unwrap(), &464);
     }
 
     #[test]
