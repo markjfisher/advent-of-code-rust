@@ -86,32 +86,32 @@ fn aoc2015() -> Vec<Solution> {
     vec![
         solution!(aoc2015, day01),
         solution!(aoc2015, day02),
-        // solution!(year2015, day03),
-        // solution!(year2015, day04),
-        // solution!(year2015, day05),
-        // solution!(year2015, day06),
-        // solution!(year2015, day07),
-        // solution!(year2015, day08),
-        // solution!(year2015, day09),
-        // solution!(year2015, day10),
-        // solution!(year2015, day11),
-        // solution!(year2015, day12),
-        // solution!(year2015, day13),
-        // solution!(year2015, day14),
-        // solution!(year2015, day15),
+        solution!(aoc2015, day03),
+        // solution!(aoc2015, day04),
+        // solution!(aoc2015, day05),
+        // solution!(aoc2015, day06),
+        // solution!(aoc2015, day07),
+        // solution!(aoc2015, day08),
+        // solution!(aoc2015, day09),
+        // solution!(aoc2015, day10),
+        // solution!(aoc2015, day11),
+        // solution!(aoc2015, day12),
+        // solution!(aoc2015, day13),
+        // solution!(aoc2015, day14),
+        // solution!(aoc2015, day15),
     ]
 }
 
 // fn aoc2021() -> Vec<Solution> {
 //     vec![
-//         // solution!(year2021, day01),
-//         // solution!(year2021, day02),
-//         // solution!(year2021, day03),
+//         // solution!(aoc2021, day01),
+//         // solution!(aoc2021, day02),
+//         // solution!(aoc2021, day03),
 //     ]
 // }
 
 // fn aoc2023() -> Vec<Solution> {
 //     vec![
-//         // solution!(year2023, day01),
+//         // solution!(aoc2023, day01),
 //     ]
 // }
