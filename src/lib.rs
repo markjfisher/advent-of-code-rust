@@ -52,6 +52,7 @@ pub mod aoc2015 {
 pub mod aoc2016 {
     pub mod day01;
     pub mod day02;
+    pub mod day03;
 }
 
 // # Retrieve the keys to Santa's sleigh with an underwater submarine adventure.
