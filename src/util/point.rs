@@ -82,6 +82,19 @@ impl Point {
     pub fn signum(self, other: Self) -> Self {
         Point::new((self.x - other.x).signum(), (self.y - other.y).signum())
     }
+
+    pub fn adjacent_with_diagonals(&self) -> Vec<Point> {
+        vec![
+            Point::new(self.x - 1, self.y - 1), // top-left
+            Point::new(self.x    , self.y - 1), // top
+            Point::new(self.x + 1, self.y - 1), // top-right
+            Point::new(self.x - 1, self.y    ), // left
+            Point::new(self.x + 1, self.y    ), // right
+            Point::new(self.x - 1, self.y + 1), // bottom-left
+            Point::new(self.x    , self.y + 1), // bottom
+            Point::new(self.x + 1, self.y + 1), // bottom-right
+        ]
+    }
 }
 
 impl From<u8> for Point {
@@ -149,5 +162,26 @@ impl SubAssign for Point {
     fn sub_assign(&mut self, rhs: Self) {
         self.x -= rhs.x;
         self.y -= rhs.y;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_adjacent_with_diagonals() {
+        let point = Point::new(0, 0);
+        let adjacent = point.adjacent_with_diagonals();
+        
+        assert_eq!(adjacent.len(), 8);
+        assert!(adjacent.contains(&Point::new(-1, -1)));
+        assert!(adjacent.contains(&Point::new( 0, -1)));
+        assert!(adjacent.contains(&Point::new( 1, -1)));
+        assert!(adjacent.contains(&Point::new(-1,  0)));
+        assert!(adjacent.contains(&Point::new( 1,  0)));
+        assert!(adjacent.contains(&Point::new(-1,  1)));
+        assert!(adjacent.contains(&Point::new( 0,  1)));
+        assert!(adjacent.contains(&Point::new( 1,  1)));
     }
 }

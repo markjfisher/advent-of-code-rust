@@ -22,8 +22,10 @@ fn main() {
     let solutions = empty()
         .chain(aoc2015())
         .chain(aoc2016())
+        .chain(aoc2017())
         // .chain(aoc2021())
         // .chain(aoc2023())
+        .chain(aoc2024())
         .filter(|solution| year.is_none_or(|y: u32| y == solution.year))
         .filter(|solution| day.is_none_or(|d: u32| d == solution.day));
 
@@ -108,6 +110,16 @@ fn aoc2016() -> Vec<Solution> {
         solution!(aoc2016, day01),
         solution!(aoc2016, day02),
         solution!(aoc2016, day03),
+        solution!(aoc2016, day04),
+    ]
+}
+
+fn aoc2017() -> Vec<Solution> {
+    vec![
+        solution!(aoc2017, day01),
+        solution!(aoc2017, day02),
+        solution!(aoc2017, day03),
+        // solution!(aoc2017, day04),
     ]
 }
 
@@ -124,3 +136,33 @@ fn aoc2016() -> Vec<Solution> {
 //         // solution!(aoc2023, day01),
 //     ]
 // }
+
+fn aoc2024() -> Vec<Solution> {
+    vec![
+        solution!(aoc2024, day01),
+        solution!(aoc2024, day02),
+        solution!(aoc2024, day03),
+        solution!(aoc2024, day04),
+        solution!(aoc2024, day05),
+        solution!(aoc2024, day06),
+        solution!(aoc2024, day07),
+        solution!(aoc2024, day08),
+        solution!(aoc2024, day09),
+        solution!(aoc2024, day10),
+        solution!(aoc2024, day11),
+        solution!(aoc2024, day12),
+        solution!(aoc2024, day13),
+        solution!(aoc2024, day14),
+        solution!(aoc2024, day15),
+        solution!(aoc2024, day16),
+        solution!(aoc2024, day17),
+        solution!(aoc2024, day18),
+        solution!(aoc2024, day19),
+        solution!(aoc2024, day20),
+        solution!(aoc2024, day21),
+        solution!(aoc2024, day22),
+        solution!(aoc2024, day23),
+        solution!(aoc2024, day24),
+        solution!(aoc2024, day25),
+    ]
+}
