@@ -60,7 +60,13 @@ pub mod aoc2017 {
     pub mod day01;
     pub mod day02;
     pub mod day03;
-    // pub mod day04;
+    pub mod day04;
+    // pub mod day05;
+    // pub mod day06;
+    // pub mod day07;
+    // pub mod day08;
+    // pub mod day09;
+    // pub mod day10;
 }
 
 // # Retrieve the keys to Santa's sleigh with an underwater submarine adventure.
