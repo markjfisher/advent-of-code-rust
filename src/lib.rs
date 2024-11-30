@@ -49,6 +49,10 @@ pub mod aoc2015 {
     // pub mod day15;
 }
 
+pub mod aoc2016 {
+    pub mod day01;
+}
+
 // # Retrieve the keys to Santa's sleigh with an underwater submarine adventure.
 // pub mod aoc2021 {
 //     pub mod day_01;

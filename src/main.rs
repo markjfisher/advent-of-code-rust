@@ -21,6 +21,7 @@ fn main() {
     // Filter solutions
     let solutions = empty()
         .chain(aoc2015())
+        .chain(aoc2016())
         // .chain(aoc2021())
         // .chain(aoc2023())
         .filter(|solution| year.is_none_or(|y: u32| y == solution.year))
@@ -99,6 +100,12 @@ fn aoc2015() -> Vec<Solution> {
         // solution!(aoc2015, day13),
         // solution!(aoc2015, day14),
         // solution!(aoc2015, day15),
+    ]
+}
+
+fn aoc2016() -> Vec<Solution> {
+    vec![
+        solution!(aoc2016, day01),
     ]
 }
 

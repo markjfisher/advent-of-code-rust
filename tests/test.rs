@@ -38,3 +38,7 @@ mod aoc2015 {
     // mod day07_test;
     // mod day08_test;
 }
+
+mod aoc2016 {
+    mod day01_test;
+}
