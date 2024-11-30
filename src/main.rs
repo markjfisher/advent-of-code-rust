@@ -106,6 +106,7 @@ fn aoc2015() -> Vec<Solution> {
 fn aoc2016() -> Vec<Solution> {
     vec![
         solution!(aoc2016, day01),
+        solution!(aoc2016, day02),
     ]
 }
 

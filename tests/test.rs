@@ -41,4 +41,5 @@ mod aoc2015 {
 
 mod aoc2016 {
     mod day01_test;
+    mod day02_test;
 }
