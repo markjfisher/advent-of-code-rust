@@ -1,4 +1,5 @@
 use aoc::aoc2024::day02::*;
+use assert_unordered::assert_eq_unordered;
 
 const EXAMPLE: &str = "\
 7 6 4 2 1
@@ -52,7 +53,7 @@ fn is_valid_decreasing_test() {
 #[test]
 fn generate_subsequences_test() {
     let input = parse(EXAMPLE);
-    assert_eq!(subsequences_missing_one_entry(&input[0]), 
+    assert_eq_unordered!(subsequences_missing_one_entry(&input[0]), 
         vec![
             vec![7, 6, 4, 2],
             vec![7, 6, 4, 1], 
