@@ -1,4 +1,5 @@
 use crate::util::parse::*;
+use itertools::Itertools;
 
 type Input = Vec<Vec<u32>>;
 
@@ -38,18 +39,9 @@ pub fn is_valid_decreasing(numbers: &[u32]) -> bool {
 }
 
 pub fn subsequences_missing_one_entry(numbers: &[u32]) -> Vec<Vec<u32>> {
-    let mut result = Vec::with_capacity(numbers.len());
-    
-    // use the index to skip that round's entry
-    for skip_idx in 0..numbers.len() {
-        let subsequence: Vec<u32> = numbers
-            .iter()
-            .enumerate()
-            .filter(|(i, _)| *i != skip_idx)
-            .map(|(_, &num)| num)
-            .collect();
-        result.push(subsequence);
-    }
-    
-    result
+    numbers
+        .iter()
+        .copied()
+        .combinations(numbers.len() - 1)
+        .collect()
 }
