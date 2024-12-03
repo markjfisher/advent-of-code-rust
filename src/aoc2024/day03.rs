@@ -11,25 +11,20 @@ pub fn part2(input: &[(u32, u32, bool)]) -> u32 {
 }
 
 pub fn extract_muls(s: &str) -> Vec<(u32, u32, bool)> {
-    let mul_regex = regex::Regex::new(r"^mul\((\d{1,3}),(\d{1,3})\)").unwrap();
+    let re = regex::Regex::new(r"(do\(\)|don't\(\)|mul\((\d{1,3}),(\d{1,3})\))").unwrap();
     let mut result = Vec::new();
     let mut is_on = true;
-    let mut pos = 0;
 
-    while pos < s.len() {
-        if s[pos..].starts_with("don't()") {
+    for cap in re.captures_iter(s) {
+        let matched_str = cap.get(0).unwrap().as_str();
+        if matched_str == "don't()" {
             is_on = false;
-            pos += "don't()".len();
-        } else if s[pos..].starts_with("do()") {
+        } else if matched_str == "do()" {
             is_on = true;
-            pos += "do()".len();
-        } else if let Some(cap) = mul_regex.captures(&s[pos..]) {
-            let x = cap[1].parse::<u32>().unwrap();
-            let y = cap[2].parse::<u32>().unwrap();
+        } else if let (Some(x), Some(y)) = (cap.get(2), cap.get(3)) {
+            let x = x.as_str().parse::<u32>().unwrap();
+            let y = y.as_str().parse::<u32>().unwrap();
             result.push((x, y, is_on));
-            pos += cap.get(0).unwrap().as_str().len();
-        } else {
-            pos += 1;
         }
     }
 
