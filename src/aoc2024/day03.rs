@@ -11,7 +11,7 @@ pub fn part2(input: &[(u32, u32, bool)]) -> u32 {
 }
 
 pub fn extract_muls(s: &str) -> Vec<(u32, u32, bool)> {
-    let re = regex::Regex::new(r"(do\(\)|don't\(\)|mul\((\d{1,3}),(\d{1,3})\))").unwrap();
+    let re = regex::Regex::new(r"(do(?:n't)?\(\)|mul\((\d{1,3}),(\d{1,3})\))").unwrap();
     let mut result = Vec::new();
     let mut is_on = true;
 
