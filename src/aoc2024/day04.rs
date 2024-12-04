@@ -8,11 +8,9 @@ pub fn parse(input: &str) -> Grid<u8> {
 pub fn part1(input: &Grid<u8>) -> u32 {
     input.points()
         .filter(|&p| input[p] == b'X')
-        .map(|p| {
-            DIAGONAL.iter()
-                .filter(|&&direction| check_for_xmas(input, p, direction, 1))
-                .count() as u32
-        })
+        .map(|p| DIAGONAL.iter()
+            .filter(|&&direction| check_for_xmas(input, p, direction, 1))
+            .count() as u32)
         .sum()
 }
 
