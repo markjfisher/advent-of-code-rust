@@ -17,3 +17,9 @@ fn extract_muls_test() {
     assert_eq!(extract_muls("text mul(2,345) more mul(123,45) invalid mul(1234,5)"), vec![(2, 345, true), (123, 45, true)]);
     assert_eq!(extract_muls("mul(2,345) don't() mul(123,45) do() mul(1234,5)mul(1,2)"), vec![(2, 345, true), (123, 45, false), (1, 2, true)]);
 }
+
+#[test]
+fn extract_muls_tr_test() {
+    assert_eq!(extract_muls_tr("text mul(2,345) more mul(123,45) invalid mul(1234,5)"), vec![(2, 345, true), (123, 45, true)]);
+    assert_eq!(extract_muls_tr("mul(2,345) don't() mul(123,45) do() mul(1234,5)mul(1,2)"), vec![(2, 345, true), (123, 45, false), (1, 2, true)]);
+}
