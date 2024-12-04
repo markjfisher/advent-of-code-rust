@@ -75,6 +75,12 @@ impl<T> Grid<T> {
     pub fn contains(&self, point: Point) -> bool {
         point.x >= 0 && point.x < self.width && point.y >= 0 && point.y < self.height
     }
+
+    pub fn points(&self) -> impl Iterator<Item = Point> + '_ {
+        (0..self.height).flat_map(move |y| 
+            (0..self.width).map(move |x| Point::new(x, y))
+        )
+    }
 }
 
 impl<T> Index<Point> for Grid<T> {
@@ -90,5 +96,29 @@ impl<T> IndexMut<Point> for Grid<T> {
     #[inline]
     fn index_mut(&mut self, index: Point) -> &mut Self::Output {
         &mut self.bytes[(self.width * index.y + index.x) as usize]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_grid_points_iterator() {
+        let grid = Grid::parse("12\n34");
+        let points: Vec<Point> = grid.points().collect();
+        
+        assert_eq!(points, vec![
+            Point::new(0, 0),
+            Point::new(1, 0),
+            Point::new(0, 1),
+            Point::new(1, 1),
+        ]);
+        
+        // Verify we can access all values through these points
+        assert_eq!(grid[points[0]], b'1');
+        assert_eq!(grid[points[1]], b'2');
+        assert_eq!(grid[points[2]], b'3');
+        assert_eq!(grid[points[3]], b'4');
     }
 }

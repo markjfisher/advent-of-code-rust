@@ -6,20 +6,14 @@ pub fn parse(input: &str) -> Grid<u8> {
 
 // Search for "XMAS" in a single direction from every "X" in the grid
 pub fn part1(input: &Grid<u8>) -> u32 {
-    let mut result = 0;
-
-    for y in 0..input.height {
-        for x in 0..input.width {
-            if input[Point::new(x, y)] == b'X' {
-                for &direction in &DIAGONAL {
-                    if check_for_xmas(input, Point::new(x, y), direction, 1) {
-                        result += 1;
-                    }
-                }
-            }
-        }
-    }
-    result
+    input.points()
+        .filter(|&p| input[p] == b'X')
+        .map(|p| {
+            DIAGONAL.iter()
+                .filter(|&&direction| check_for_xmas(input, p, direction, 1))
+                .count() as u32
+        })
+        .sum()
 }
 
 // We are searching from every "A" in the grid for the letters MAS in an "X" shape
@@ -32,17 +26,10 @@ pub fn part1(input: &Grid<u8>) -> u32 {
 // The other patters allowed are simply rotations of this
 // Note we have to ensure we use the same order as the value JUST_DIAGONALS, which is UL, UR, DR, DL
 pub fn part2(input: &Grid<u8>) -> u32 {
-    let mut result = 0;
-
-    for y in 0..input.height {
-        for x in 0..input.width {
-            let center = Point::new(x, y);
-            if input[center] == b'A' && check_for_mas_x(input, center) {
-                result += 1;
-            }
-        }
-    }
-    result
+    input.points()
+        .filter(|&p| input[p] == b'A')
+        .map(|p| check_for_mas_x(input, p) as u32)
+        .sum()
 }
 
 fn check_for_mas_x(grid: &Grid<u8>, center: Point) -> bool {
