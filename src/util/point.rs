@@ -34,16 +34,21 @@ pub const DOWN: Point = Point::new(0, 1);
 pub const LEFT: Point = Point::new(-1, 0);
 pub const RIGHT: Point = Point::new(1, 0);
 pub const ORTHOGONAL: [Point; 4] = [UP, DOWN, LEFT, RIGHT];
+pub const UP_LEFT: Point = Point::new(-1, -1);
+pub const UP_RIGHT: Point = Point::new(1, -1);
+pub const DOWN_LEFT: Point = Point::new(-1, 1);
+pub const DOWN_RIGHT: Point = Point::new(1, 1);
+pub const JUST_DIAGONALS: [Point; 4] = [UP_LEFT, UP_RIGHT, DOWN_RIGHT, DOWN_LEFT];
 // Left to right and top to bottom.
 pub const DIAGONAL: [Point; 8] = [
-    Point::new(-1, -1),
+    UP_LEFT,
     UP,
-    Point::new(1, -1),
+    UP_RIGHT,
     LEFT,
     RIGHT,
-    Point::new(-1, 1),
+    DOWN_LEFT,
     DOWN,
-    Point::new(1, 1),
+    DOWN_RIGHT,
 ];
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -84,16 +89,7 @@ impl Point {
     }
 
     pub fn adjacent_with_diagonals(&self) -> Vec<Point> {
-        vec![
-            Point::new(self.x - 1, self.y - 1), // top-left
-            Point::new(self.x    , self.y - 1), // top
-            Point::new(self.x + 1, self.y - 1), // top-right
-            Point::new(self.x - 1, self.y    ), // left
-            Point::new(self.x + 1, self.y    ), // right
-            Point::new(self.x - 1, self.y + 1), // bottom-left
-            Point::new(self.x    , self.y + 1), // bottom
-            Point::new(self.x + 1, self.y + 1), // bottom-right
-        ]
+        DIAGONAL.iter().map(|&p| *self + p).collect()
     }
 }
 
