@@ -1,19 +1,14 @@
+use crate::util::hash::*;
 use crate::util::iter::*;
 use crate::util::parse::*;
-
-#[derive(Debug)]
-struct PageRule {
-    before: usize,
-    after: usize,
-}
 
 pub fn parse(input: &str) -> (usize, usize) {
     let (rules_data, checks_data) = input.split_once("\n\n").unwrap();
     
-    let rules: Vec<PageRule> = rules_data
+    let rules: FastSet<(usize, usize)> = rules_data
         .iter_unsigned::<usize>()
         .chunk::<2>()
-        .map(|[before, after]| PageRule { before, after })
+        .map(|[before, after]| (before, after))
         .collect();
 
     checks_data.lines().fold((0, 0), |(sum_valid_middles, sum_invalid_middles), test_line| {
@@ -26,9 +21,7 @@ pub fn parse(input: &str) -> (usize, usize) {
                 .iter()
                 .enumerate()
                 .position(|(i, &from)| {
-                    check_values[i + 1..].iter().all(|&to| {
-                        rules.iter().any(|rule| rule.before == from && rule.after == to)
-                    })
+                    check_values[i + 1..].iter().all(|&to| rules.contains(&(from, to)))
                 })
                 .unwrap();
 
