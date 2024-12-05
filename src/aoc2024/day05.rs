@@ -1,15 +1,17 @@
-use crate::util::hash::*;
 use crate::util::iter::*;
 use crate::util::parse::*;
 
 pub fn parse(input: &str) -> (usize, usize) {
     let (rules_data, checks_data) = input.split_once("\n\n").unwrap();
     
-    let rules: FastSet<(usize, usize)> = rules_data
+    // Create and populate the rules array
+    let mut rules = [[false; 100]; 100];
+    rules_data
         .iter_unsigned::<usize>()
         .chunk::<2>()
-        .map(|[before, after]| (before, after))
-        .collect();
+        .for_each(|[before, after]| {
+            rules[before][after] = true;
+        });
 
     checks_data.lines().fold((0, 0), |(sum_valid_middles, sum_invalid_middles), test_line| {
         let mut is_correct = true;
@@ -21,7 +23,7 @@ pub fn parse(input: &str) -> (usize, usize) {
                 .iter()
                 .enumerate()
                 .position(|(i, &from)| {
-                    check_values[i + 1..].iter().all(|&to| rules.contains(&(from, to)))
+                    check_values[i + 1..].iter().all(|&to| rules[from][to])
                 })
                 .unwrap();
 
