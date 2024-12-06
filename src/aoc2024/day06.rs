@@ -45,6 +45,13 @@ pub fn part1(input: &Grid<u8>) -> u32 {
     walk_grid(input).unwrap_or_default()
 }
 
-pub fn part2(_input: &Grid<u8>) -> u32 {
-    456
+pub fn part2(input: &Grid<u8>) -> u32 {
+    input.points()
+        .filter(|&p| input[p] == b'.')
+        .filter(|&p| {
+            let mut with_obstacle = input.clone();
+            with_obstacle[p] = b'#';
+            walk_grid(&with_obstacle).is_err()
+        })
+        .count() as u32
 }
