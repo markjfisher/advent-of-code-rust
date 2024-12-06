@@ -63,6 +63,12 @@ fn is_loop(input: &Grid<u8>, start_position: Point, blocked_point: Point) -> boo
                     return true;
                 }
                 visited.insert((new_location, guard_direction));
+                // This break ensures we don't move before finding a direction that has a free location
+                // e.g. in this scenario:
+                // .#.
+                // .^#
+                // ...
+                // The N is blocked, so he turns right, blocked again, but will not move into it, and turns South before moving.
                 break;
             }
             new_location = next;
