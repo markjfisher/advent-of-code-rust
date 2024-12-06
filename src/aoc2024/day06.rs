@@ -4,40 +4,32 @@ pub fn parse(input: &str) -> Grid<u8> {
     Grid::parse(input)
 }
 
-fn walk_grid(input: &Grid<u8>) -> Result<FastSet<Point>, FastSet<Point>> {
-    let mut visited = FastSet::new();
+fn walk_grid(input: &Grid<u8>) -> Option<FastSet<Point>> {
+    let mut visited = vec![[false; 4]; (input.width * input.height) as usize];
+    let mut positions = FastSet::with_capacity((input.width * input.height) as usize);
     let mut guard_location = input.find(b'^').unwrap();
     let mut guard_direction = UP;
-    let mut is_in_grid = true;
     
-    visited.insert((guard_location, guard_direction));
+    positions.insert(guard_location);
+    visited[(guard_location.y * input.width + guard_location.x) as usize][guard_direction.to_index()] = true;
 
-    while is_in_grid {
+    loop {
         let new_location = guard_location + Point::from(guard_direction);
         if !input.contains(new_location) {
-            is_in_grid = false;
-            break;
+            return Some(positions);
         }
 
         if input[new_location] == b'#' {
             guard_direction = guard_direction.clockwise();
         } else {
             guard_location = new_location;
+            positions.insert(guard_location);
         }
         
-        if !visited.insert((guard_location, guard_direction)) {
-            break;
+        if visited[(guard_location.y * input.width + guard_location.x) as usize][guard_direction.to_index()] {
+            return None;
         }
-    }
-
-    let unique_positions: FastSet<_> = visited.iter()
-        .map(|(pos, _)| *pos)
-        .collect();
-    
-    if is_in_grid {
-        Err(unique_positions)
-    } else {
-        Ok(unique_positions)
+        visited[(guard_location.y * input.width + guard_location.x) as usize][guard_direction.to_index()] = true;
     }
 }
 
@@ -53,7 +45,7 @@ pub fn part2(input: &Grid<u8>) -> u32 {
         .filter(|&&p| {
             let mut modified_grid = input.clone();
             modified_grid[p] = b'#';
-            walk_grid(&modified_grid).is_err()
+            walk_grid(&modified_grid).is_none()
         })
         .count() as u32
 }

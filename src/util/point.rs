@@ -91,6 +91,16 @@ impl Point {
     pub fn adjacent_with_diagonals(&self) -> Vec<Point> {
         DIAGONAL.iter().map(|&p| *self + p).collect()
     }
+
+    pub fn to_index(&self) -> usize {
+        match *self {
+            UP => 0,
+            RIGHT => 1,
+            DOWN => 2,
+            LEFT => 3,
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl From<u8> for Point {
