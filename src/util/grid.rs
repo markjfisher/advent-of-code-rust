@@ -25,7 +25,9 @@
 //! [`parse`]: Grid::parse
 //! [`default_copy`]: Grid::default_copy
 use crate::util::point::*;
+use crate::util::hash::*;
 use std::ops::{Index, IndexMut};
+
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Grid<T> {
@@ -96,6 +98,79 @@ impl<T> IndexMut<Point> for Grid<T> {
     #[inline]
     fn index_mut(&mut self, index: Point) -> &mut Self::Output {
         &mut self.bytes[(self.width * index.y + index.x) as usize]
+    }
+}
+
+#[derive(Clone)]
+pub struct SparseGrid<T> {
+    pub width: i32,
+    pub height: i32,
+    pub data: FastMap<Point, T>,
+}
+
+impl SparseGrid<u8> {
+    pub fn parse<F>(input: &str, predicate: F) -> Self 
+    where 
+        F: Fn(u8) -> bool,
+    {
+        let raw: Vec<_> = input.lines().map(str::as_bytes).collect();
+        let width = raw[0].len() as i32;
+        let height = raw.len() as i32;
+        
+        let mut data = FastMap::new();
+        for (y, row) in raw.iter().enumerate() {
+            for (x, &value) in row.iter().enumerate() {
+                if predicate(value) {
+                    data.insert(Point::new(x as i32, y as i32), value);
+                }
+            }
+        }
+
+        SparseGrid { width, height, data }
+    }
+
+    pub fn parse_all(input: &str) -> Self {
+        Self::parse(input, |_| true)
+    }
+}
+
+impl<T> SparseGrid<T> {
+    pub fn points(&self) -> impl Iterator<Item = Point> + '_ {
+        (0..self.height).flat_map(move |y| 
+            (0..self.width).map(move |x| Point::new(x, y))
+        )
+    }
+
+    pub fn contains(&self, point: Point) -> bool {
+        point.x >= 0 && point.x < self.width && point.y >= 0 && point.y < self.height
+    }
+}
+
+impl<T> Index<Point> for SparseGrid<T> {
+    type Output = T;
+
+    fn index(&self, point: Point) -> &Self::Output {
+        &self.data[&point]
+    }
+}
+
+impl<T> IndexMut<Point> for SparseGrid<T> {
+    fn index_mut(&mut self, point: Point) -> &mut Self::Output {
+        self.data.get_mut(&point).unwrap()
+    }
+}
+
+impl<T: PartialEq> SparseGrid<T> {
+    pub fn find(&self, needle: &T) -> Option<Point> {
+        self.data.iter()
+            .find(|(_, value)| *value == needle)
+            .map(|(&point, _)| point)
+    }
+
+    pub fn find_all<'a>(&'a self, needle: &'a T) -> impl Iterator<Item = Point> + 'a {
+        self.data.iter()
+            .filter(move |(_, value)| *value == needle)
+            .map(move |(&point, _)| point)
     }
 }
 
