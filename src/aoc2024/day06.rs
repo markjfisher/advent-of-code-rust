@@ -4,7 +4,7 @@ pub fn parse(input: &str) -> Grid<u8> {
     Grid::parse(input)
 }
 
-fn walk_grid(input: &Grid<u8>) -> Result<u32, u32> {
+fn walk_grid(input: &Grid<u8>) -> Result<FastSet<Point>, FastSet<Point>> {
     let mut visited = FastSet::new();
     let mut guard_location = input.find(b'^').unwrap();
     let mut guard_direction = UP;
@@ -35,23 +35,25 @@ fn walk_grid(input: &Grid<u8>) -> Result<u32, u32> {
         .collect();
     
     if is_in_grid {
-        Err(unique_positions.len() as u32)
+        Err(unique_positions)
     } else {
-        Ok(unique_positions.len() as u32)
+        Ok(unique_positions)
     }
 }
 
 pub fn part1(input: &Grid<u8>) -> u32 {
-    walk_grid(input).unwrap_or_default()
+    walk_grid(input).unwrap_or_default().len() as u32
 }
 
 pub fn part2(input: &Grid<u8>) -> u32 {
-    input.points()
-        .filter(|&p| input[p] == b'.')
-        .filter(|&p| {
-            let mut with_obstacle = input.clone();
-            with_obstacle[p] = b'#';
-            walk_grid(&with_obstacle).is_err()
+    let initial_positions = walk_grid(input).unwrap_or_default();
+    
+    initial_positions.iter()
+        .filter(|&&p| input[p] == b'.')
+        .filter(|&&p| {
+            let mut modified_grid = input.clone();
+            modified_grid[p] = b'#';
+            walk_grid(&modified_grid).is_err()
         })
         .count() as u32
 }
