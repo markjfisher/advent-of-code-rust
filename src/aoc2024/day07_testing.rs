@@ -1,5 +1,8 @@
 use super::day07::*;
 
+// This compares two solutions, and was used to debug the bitwise solution.
+// The bug was due to skipping the "4" case!
+
 pub fn parse(input: &str) -> Vec<(u64, Vec<u64>)> {
     input.lines()
         .map(|line| {
@@ -36,27 +39,6 @@ pub fn compare_solutions(input: &[(u64, Vec<u64>)], use_concat: bool) {
             _validate_with_debug(&validate_nums, *target, nums.len(), use_concat, &mut debug_str);
             println!("Trace:\n{}", debug_str);
         }
-    }
-}
-
-pub fn compare_solutions_verbose(input: &[(u64, Vec<u64>)], use_concat: bool) {
-    for (target, nums) in input {
-        let bitwise_result = can_make_target(*target, nums, use_concat, false);
-        
-        // Create a new vector with target as first element for validate
-        let mut validate_nums = Vec::with_capacity(nums.len() + 1);
-        validate_nums.push(*target);
-        validate_nums.extend(nums);
-        
-        let recursive_result = validate(&validate_nums, *target, nums.len(), use_concat);
-        
-        println!("Target {} with nums {:?}", target, nums);
-        println!("  bitwise_result: {}", bitwise_result);
-        println!("  recursive_result: {}", recursive_result);
-        if bitwise_result != recursive_result {
-            println!("  ^^^ MISMATCH! ^^^");
-        }
-        println!();
     }
 }
 

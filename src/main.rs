@@ -154,7 +154,6 @@ fn aoc2024() -> Vec<Solution> {
         solution!(aoc2024, day05),
         solution!(aoc2024, day06),
         solution!(aoc2024, day07),
-        solution!(aoc2024, day07_testing),
         solution!(aoc2024, day08),
         solution!(aoc2024, day09),
         solution!(aoc2024, day10),

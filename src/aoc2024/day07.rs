@@ -53,6 +53,59 @@ pub fn validate(terms: &[u64], test_value: u64, index: usize, concat: bool) -> b
     }
 }
 
+fn next_power_of_ten(n: u64) -> u64 {
+    let mut power = 10;
+
+    while power <= n {
+        power *= 10;
+    }
+
+    power
+}
+
+// Original bitwise solution that takes forever, but is at least working now
+pub fn _can_make_target(target: u64, nums: &[u64], use_concat: bool) -> bool {
+    let op_count = nums.len() - 1;
+    let combinations = 1 << (if use_concat { 2 * op_count } else { op_count });
+
+    'next_combination: for op_combination in 0..combinations {
+        let mut result = nums[0];
+        
+        for i in 0..op_count {
+            let next_num = nums[i + 1];
+            let op_bits = if use_concat {
+                (op_combination >> (2 * i)) & 0b11
+            } else {
+                (op_combination >> i) & 0b1
+            };
+
+            result = if use_concat {
+                match op_bits {
+                    0 => result + next_num,
+                    1 => result * next_num,
+                    2 => format!("{}{}", result, next_num)
+                        .parse::<u64>()
+                        .unwrap_or(0),
+                    _ => continue 'next_combination,
+                }
+            } else {
+                match op_bits {
+                    0 => result + next_num,
+                    1 => result * next_num,
+                    _ => unreachable!(),
+                }
+            };
+        }
+        
+        if result == target {
+            return true;
+        }
+    }
+    
+    false
+}
+
+// A verbose version of the recursive solution to debug it
 pub fn _validate_with_debug(terms: &[u64], test_value: u64, index: usize, concat: bool, debug: &mut String) -> bool {
     if test_value == 0 {
         if index == 0 {
@@ -106,14 +159,4 @@ pub fn _validate_with_debug(terms: &[u64], test_value: u64, index: usize, concat
     }
 
     false
-}
-
-fn next_power_of_ten(n: u64) -> u64 {
-    let mut power = 10;
-
-    while power <= n {
-        power *= 10;
-    }
-
-    power
 }
