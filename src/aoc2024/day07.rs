@@ -1,82 +1,119 @@
 use crate::util::parse::*;
 
-pub fn parse(input: &str) -> Vec<(u128, Vec<u128>)> {
-    input.lines().map(|line| {
-        // println!("{}", line);
-        let nums: Vec<u128> = line.iter_unsigned().collect();
-        // println!("{:?}", nums);
-        (nums[0], nums[1..].to_vec())
-    }).collect()
-}
+type Input = (u64, u64);
 
-// p1: 5030892084481
-// p2: 91377501990670 too high
-// p2: 91377448645408 too high
+pub fn parse(input: &str) -> Input {
+    let mut equation = Vec::new();
+    let mut part_one = 0;
+    let mut part_two = 0;
 
-pub fn part1(input: &[(u128, Vec<u128>)]) -> u128 {
-    input.iter()
-        .filter(|(target, nums)| can_make_target(*target, nums, false))
-        .map(|(target, _)| target)
-        .sum()
-}
+    for line in input.lines() {
+        equation.extend(line.iter_unsigned::<u64>());
 
-pub fn part2(input: &[(u128, Vec<u128>)]) -> u128 {
-    input.iter()
-        .filter(|(target, nums)| can_make_target(*target, nums, true))
-        .map(|(target, _)| target)
-        .sum()
-}
-
-fn can_make_target(target: u128, nums: &[u128], use_concat: bool) -> bool {
-    let op_count = nums.len() - 1;
-    let bits_per_op = if use_concat { 2 } else { 1 };
-    let combinations = 1 << (bits_per_op * op_count);
-
-    for op_combination in 0..combinations {
-        let mut result = nums[0];
-        // let mut expression = format!("{}", nums[0]);
-        
-        for i in 0..op_count {
-            let next_num = nums[i + 1];
-            let op_bits = if use_concat {
-                (op_combination >> (2 * i)) & 0b11
-            } else {
-                (op_combination >> i) & 0b1
-            };
-
-            // let (op, result_new) = if use_concat {
-            let (_, result_new) = if use_concat {
-                match op_bits {
-                    0 => ('+', result + next_num),
-                    1 => ('*', result * next_num),
-                    2 => ('|', {
-                        let concat = format!("{}{}", result, next_num)
-                            .parse::<u128>()
-                            .unwrap_or(0);
-                        concat
-                    }),
-                    _ => continue,
-                }
-            } else {
-                match op_bits {
-                    0 => ('+', result + next_num),
-                    1 => ('*', result * next_num),
-                    _ => unreachable!(),
-                }
-            };
-            
-            // expression.push_str(&format!(" {} {}", op, next_num));
-            result = result_new;
-        }
-        
-        if result == target {
-            // println!("Found target {}: {} = {}", target, expression, result);
-            return true;
+        // let mut debug = format!(" [{}]", line);
+        // if _validate_with_debug(&equation, equation[0], equation.len() - 1, false, &mut debug) {
+        if validate(&equation, equation[0], equation.len() - 1, false) {
+            // println!("Part 1&2 match!");
+            part_one += equation[0];
+            part_two += equation[0];
         } else {
-            // println!("No match for {}: {} = {}", target, expression, result);
+            // if _validate_with_debug(&equation, equation[0], equation.len() - 1, true, &mut debug) {
+            if validate(&equation, equation[0], equation.len() - 1, true) {
+                // println!("Part 2 match!");
+                part_two += equation[0];
+            }
         }
+
+        equation.clear();
+    }
+
+    (part_one, part_two)
+}
+
+pub fn part1(input: &Input) -> u64 {
+    input.0
+}
+
+pub fn part2(input: &Input) -> u64 {
+    input.1
+}
+
+fn validate(terms: &[u64], test_value: u64, index: usize, concat: bool) -> bool {
+    // check final value matches last term
+    if index == 1 {
+        return test_value == terms[1];
+    } else {
+        (concat
+            && test_value % next_power_of_ten(terms[index]) == terms[index]
+            && validate(terms, test_value / next_power_of_ten(terms[index]), index - 1, concat))
+            || (test_value % terms[index] == 0
+                && validate(terms, test_value / terms[index], index - 1, concat))
+            || (test_value >= terms[index]
+                && validate(terms, test_value - terms[index], index - 1, concat))
+    }
+}
+
+fn _validate_with_debug(terms: &[u64], test_value: u64, index: usize, concat: bool, debug: &mut String) -> bool {
+    if test_value == 0 {
+        if index == 0 {
+            // println!("Found match: {}", debug);
+            return true;
+        }
+        return false;
     }
     
-    // println!("Target {} not possible after trying all combinations", target);
+    if index == 0 {
+        return false;
+    }
+
+    // Try concatenation
+    if concat && test_value % next_power_of_ten(terms[index]) == terms[index] {
+        let mut new_debug = debug.clone();
+        new_debug = format!("({} || {}){}", 
+            test_value / next_power_of_ten(terms[index]), 
+            terms[index], 
+            new_debug);
+        if _validate_with_debug(terms, test_value / next_power_of_ten(terms[index]), index - 1, concat, &mut new_debug) {
+            *debug = new_debug;
+            return true;
+        }
+    }
+
+    // Try multiplication
+    if test_value % terms[index] == 0 {
+        let mut new_debug = debug.clone();
+        new_debug = format!("({} * {}){}", 
+            test_value / terms[index], 
+            terms[index], 
+            new_debug);
+        if _validate_with_debug(terms, test_value / terms[index], index - 1, concat, &mut new_debug) {
+            *debug = new_debug;
+            return true;
+        }
+    }
+
+    // Try addition
+    if test_value >= terms[index] {
+        let mut new_debug = debug.clone();
+        new_debug = format!("({} + {}){}", 
+            test_value - terms[index], 
+            terms[index], 
+            new_debug);
+        if _validate_with_debug(terms, test_value - terms[index], index - 1, concat, &mut new_debug) {
+            *debug = new_debug;
+            return true;
+        }
+    }
+
     false
+}
+
+fn next_power_of_ten(n: u64) -> u64 {
+    let mut power = 10;
+
+    while power <= n {
+        power *= 10;
+    }
+
+    power
 }
