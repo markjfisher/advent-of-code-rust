@@ -38,7 +38,7 @@ pub fn part2(input: &Input) -> u64 {
     input.1
 }
 
-fn validate(terms: &[u64], test_value: u64, index: usize, concat: bool) -> bool {
+pub fn validate(terms: &[u64], test_value: u64, index: usize, concat: bool) -> bool {
     // check final value matches last term
     if index == 1 {
         return test_value == terms[1];
@@ -53,7 +53,7 @@ fn validate(terms: &[u64], test_value: u64, index: usize, concat: bool) -> bool 
     }
 }
 
-fn _validate_with_debug(terms: &[u64], test_value: u64, index: usize, concat: bool, debug: &mut String) -> bool {
+pub fn _validate_with_debug(terms: &[u64], test_value: u64, index: usize, concat: bool, debug: &mut String) -> bool {
     if test_value == 0 {
         if index == 0 {
             // println!("Found match: {}", debug);
