@@ -45,6 +45,19 @@ impl Grid<u8> {
         raw.iter().for_each(|slice| bytes.extend_from_slice(slice));
         Grid { width, height, bytes }
     }
+
+    pub fn to_grid_string(&self) -> String {
+        let mut result = String::with_capacity((self.width * (self.height + 1)) as usize);
+        for y in 0..self.height {
+            if y > 0 {
+                result.push('\n');
+            }
+            let start = (y * self.width) as usize;
+            let end = start + self.width as usize;
+            result.push_str(std::str::from_utf8(&self.bytes[start..end]).unwrap_or_default());
+        }
+        result
+    }
 }
 
 impl<T: Copy + PartialEq> Grid<T> {
@@ -195,5 +208,11 @@ mod tests {
         assert_eq!(grid[points[1]], b'2');
         assert_eq!(grid[points[2]], b'3');
         assert_eq!(grid[points[3]], b'4');
+    }
+
+    #[test]
+    fn test_grid_to_string() {
+        let grid = Grid::parse("12\n34");
+        assert_eq!(grid.to_grid_string(), "12\n34");
     }
 }
