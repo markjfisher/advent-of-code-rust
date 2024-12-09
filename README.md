@@ -11,8 +11,24 @@ Then add references to the new files in `src/lib.rs`, `src/main.rs`, and `tests/
 
 ## Running Solutions
 
+I am using nightly features, so you need to run `cargo build` with the nightly toolchain:
+
 ```bash
-cargo build
+cargo build --toolchain nightly
+```
+
+The file `.vscode/settings.json` is used to tell the rust-analyzer to use the nightly toolchain for the IDE.
+And the entry in lib.rs adds the line:
+
+```rust
+#![feature(linked_list_cursors)]
+```
+
+to list all the nightly features that are used.
+
+To run a solution:
+
+```bash
 cargo run
 cargo run aoc2024
 cargo run aoc2024::day01

@@ -13,6 +13,8 @@
 // Configure rustdoc.
 #![doc(html_logo_url = "https://maneatingape.github.io/advent-of-code-rust/logo.png")]
 
+#![feature(linked_list_cursors)]
+
 /// # Utility modules to handle common recurring Advent of Code patterns.
 pub mod util {
     pub mod ansi;

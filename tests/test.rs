@@ -1,3 +1,5 @@
+#![feature(linked_list_cursors)]
+
 // Templates
 
 // pub fn parse(_input: &str) -> Vec<u32> {
