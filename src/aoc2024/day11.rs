@@ -14,12 +14,9 @@ pub fn part2(input: &[u64]) -> u64 {
 }
 
 pub fn blink(input: &[u64], steps: u32) -> u64 {
-    if steps == 0 {
-        return input.len() as u64;
-    }
-
-    // each number follows the same rules, so we can memoize the results
-    let mut memo: FastMap<(u64, u32), u64> = FastMap::new();
+    // each number follows the same rules, so we can memoize the results. With foresight (i.e. running it once!), we know there are a max of 125k entries
+    // The cache is hit 65k times after some analysis
+    let mut memo: FastMap<(u64, u32), u64> = FastMap::with_capacity(125_000);
     
     input.iter().map(|&num| {
         count_after_steps(num, steps, &mut memo)
