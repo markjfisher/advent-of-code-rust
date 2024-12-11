@@ -1,11 +1,11 @@
 use aoc::aoc2024::day11::*;
 
-const EXAMPLE: &str = "";
+const EXAMPLE: &str = "125 17";
 
 #[test]
 fn part1_test() {
     let input = parse(EXAMPLE);
-    assert_eq!(part1(&input), 123);
+    assert_eq!(part1(&input), 55312);
 }
 
 #[test]
