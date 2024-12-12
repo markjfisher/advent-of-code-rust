@@ -171,6 +171,22 @@ impl SubAssign for Point {
     }
 }
 
+impl PartialOrd for Point {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Point {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        // Compare y first, then x (row-major order)
+        match self.y.cmp(&other.y) {
+            std::cmp::Ordering::Equal => self.x.cmp(&other.x),
+            ordering => ordering,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -189,5 +205,32 @@ mod tests {
         assert!(adjacent.contains(&Point::new(-1,  1)));
         assert!(adjacent.contains(&Point::new( 0,  1)));
         assert!(adjacent.contains(&Point::new( 1,  1)));
+    }
+
+    #[test]
+    fn test_point_ordering() {
+        // Test row-major ordering (y first, then x)
+        let p1 = Point::new(0, 0);
+        let p2 = Point::new(1, 0);
+        let p3 = Point::new(0, 1);
+        let p4 = Point::new(2, 0);
+        
+        // Same y, different x
+        assert!(p1 < p2);
+        assert!(p2 < p4);
+        
+        // Different y
+        assert!(p1 < p3);
+        assert!(p2 < p3);
+        
+        // Test equality
+        assert!(p1 == p1);
+        assert!(p1 <= p1);
+        assert!(p1 >= p1);
+        
+        // Test vector sorting
+        let mut points = vec![p4, p3, p2, p1];
+        points.sort();
+        assert_eq!(points, vec![p1, p2, p4, p3]);
     }
 }
