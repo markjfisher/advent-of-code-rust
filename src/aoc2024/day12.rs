@@ -103,10 +103,9 @@ pub fn count_connected_regions(grid: &Grid<u8>) -> HashMap<Point, usize> {
     region_sizes
 }
 
-// I tried refactoring this to use the flood fill from part 1, but it was slower for some reason :shrug:
 pub fn create_regions(grid: &Grid<u8>) -> Vec<Region> {
     let mut regions = Vec::new();
-    let mut processed = HashSet::new();
+    let mut processed: HashSet<Point> = HashSet::new();
     
     for start in grid.points() {
         if processed.contains(&start) {
@@ -115,8 +114,10 @@ pub fn create_regions(grid: &Grid<u8>) -> Vec<Region> {
         
         let plant_type = grid[start];
         let mut region_points = HashSet::new();
+        let mut corners = Vec::new();
         let mut to_visit = vec![start];
         
+        // First find all points in the region
         while let Some(point) = to_visit.pop() {
             if !region_points.insert(point) {
                 continue;
@@ -133,100 +134,68 @@ pub fn create_regions(grid: &Grid<u8>) -> Vec<Region> {
             }
         }
         
-        // Find sides - this is messy but it works and I'm done with the day
-        // It calculates sides by creating ranges by checking points either side
-        let mut sides = HashSet::new();
-        
-        // For each point in the region
+        // Then find corners for each point
         for &point in &region_points {
-            // Check vertical sides (left and right)
-            for &dir in &[LEFT, RIGHT] {
-                let neighbour = point + dir;
-                if !grid.contains(neighbour) || grid[neighbour] != plant_type {
-                    // Look for continuous vertical line
-                    let mut y_min = point.y;
-                    let mut y_max = point.y;
-                    
-                    // Check above for same vertical line
-                    let mut check = point + UP;
-                    while region_points.contains(&check) {
-                        let side_check = check + dir;
-                        if !grid.contains(side_check) || grid[side_check] != plant_type {
-                            y_min = check.y;
-                            check = check + UP;
-                        } else {
-                            break;
-                        }
-                    }
-                    
-                    // Check below for same vertical line
-                    check = point + DOWN;
-                    while region_points.contains(&check) {
-                        let side_check = check + dir;
-                        if !grid.contains(side_check) || grid[side_check] != plant_type {
-                            y_max = check.y;
-                            check = check + DOWN;
-                        } else {
-                            break;
-                        }
-                    }
-                    
-                    sides.insert(Side::Vertical {
-                        x: point.x,
-                        y_range: (y_min, y_max),
-                        direction: dir.x
-                    });
-                }
+            // A fence exists where we either hit the grid boundary or a different plant
+            let fences = [
+                !region_points.contains(&(point + UP)),
+                !region_points.contains(&(point + RIGHT)),
+                !region_points.contains(&(point + DOWN)),
+                !region_points.contains(&(point + LEFT))
+            ];
+            
+            // println!("\nAnalyzing point {:?}", point);
+            // println!("Fences [UP, RIGHT, DOWN, LEFT]: {:?}", fences);
+            
+            // Check convex corners (where two fences meet)
+            if fences[0] { // top fence
+                if fences[3] { corners.push(point); } // top-left
+                if fences[1] { corners.push(point); } // top-right
+            }
+            if fences[2] { // bottom fence
+                if fences[3] { corners.push(point); } // bottom-left
+                if fences[1] { corners.push(point); } // bottom-right
             }
             
-            // Check horizontal sides (up and down)
-            for &dir in &[UP, DOWN] {
-                let neighbour = point + dir;
-                if !grid.contains(neighbour) || grid[neighbour] != plant_type {
-                    // Look for continuous horizontal line
-                    let mut x_min = point.x;
-                    let mut x_max = point.x;
-                    
-                    // Check left for same horizontal line
-                    let mut check = point + LEFT;
-                    while region_points.contains(&check) {
-                        let side_check = check + dir;
-                        if !grid.contains(side_check) || grid[side_check] != plant_type {
-                            x_min = check.x;
-                            check = check + LEFT;
-                        } else {
-                            break;
-                        }
+            // Check concave corners (where two non-fences have an outside diagonal)
+            if !fences[0] { // no top fence
+                if !fences[3] { // no left fence
+                    let diagonal = point + UP + LEFT;
+                    if !region_points.contains(&diagonal) {
+                        corners.push(point);
                     }
-                    
-                    // Check right for same horizontal line
-                    check = point + RIGHT;
-                    while region_points.contains(&check) {
-                        let side_check = check + dir;
-                        if !grid.contains(side_check) || grid[side_check] != plant_type {
-                            x_max = check.x;
-                            check = check + RIGHT;
-                        } else {
-                            break;
-                        }
+                }
+                if !fences[1] { // no right fence
+                    let diagonal = point + UP + RIGHT;
+                    if !region_points.contains(&diagonal) {
+                        corners.push(point);
                     }
-                    
-                    sides.insert(Side::Horizontal {
-                        y: point.y,
-                        x_range: (x_min, x_max),
-                        direction: dir.y
-                    });
+                }
+            }
+            if !fences[2] { // no bottom fence
+                if !fences[3] { // no left fence
+                    let diagonal = point + DOWN + LEFT;
+                    if !region_points.contains(&diagonal) {
+                        corners.push(point);
+                    }
+                }
+                if !fences[1] { // no right fence
+                    let diagonal = point + DOWN + RIGHT;
+                    if !region_points.contains(&diagonal) {
+                        corners.push(point);
+                    }
                 }
             }
         }
         
-        regions.push(Region {
-            points: region_points.clone(),
-            plant_type,
-            side_count: sides.len(),
-        });
+        processed.extend(&region_points);
         
-        processed.extend(region_points);
+        regions.push(Region {
+            points: region_points,
+            plant_type,
+            side_count: corners.len(),
+            corners,
+        });
     }
     
     regions
@@ -236,11 +205,7 @@ pub fn create_regions(grid: &Grid<u8>) -> Vec<Region> {
 pub struct Region {
     pub points: HashSet<Point>,
     pub plant_type: u8,
-    pub side_count: usize
+    pub side_count: usize,
+    pub corners: Vec<Point>
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
-enum Side {
-    Vertical { x: i32, y_range: (i32, i32), direction: i32 },
-    Horizontal { y: i32, x_range: (i32, i32), direction: i32 },
-}
