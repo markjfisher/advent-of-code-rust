@@ -8,7 +8,7 @@ pub fn parse(input: &str) -> Vec<Vec<u64>> {
 }
 
 // just do linear algebra. very simple day
-fn solve_equations(coeffs: &[u64], check_upper_bound: bool) -> Option<(i64, i64)> {
+fn solve_equations(coeffs: &[u64]) -> Option<(i64, i64)> {
     let a = coeffs[0] as i64;
     let b = coeffs[2] as i64;
     let c = coeffs[1] as i64;
@@ -29,10 +29,6 @@ fn solve_equations(coeffs: &[u64], check_upper_bound: bool) -> Option<(i64, i64)
     let x = numerator / denominator;
     let y = (e - a * x) / b;
 
-    if x < 0 || y < 0 || (check_upper_bound && (x > 100 || y > 100)) {
-        return None;
-    }
-
     if c * x + d * y != f {
         return None;
     }
@@ -43,7 +39,7 @@ fn solve_equations(coeffs: &[u64], check_upper_bound: bool) -> Option<(i64, i64)
 pub fn part1(input: &[Vec<u64>]) -> u64 {
     input
         .iter()
-        .filter_map(|coeffs| solve_equations(coeffs, true))
+        .filter_map(|coeffs| solve_equations(coeffs))
         .map(|(a, b)| (3 * a + b) as u64)
         .sum()
 }
@@ -55,7 +51,7 @@ pub fn part2(input: &[Vec<u64>]) -> u64 {
             let mut adjusted = coeffs.clone();
             adjusted[4] += 10_000_000_000_000;
             adjusted[5] += 10_000_000_000_000;
-            solve_equations(&adjusted, false)
+            solve_equations(&adjusted)
         })
         .map(|(a, b)| (3 * a + b) as u64)
         .sum()
