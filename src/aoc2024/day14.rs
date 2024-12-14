@@ -23,11 +23,7 @@ pub fn part1(input: &[Robot]) -> u32 {
 }
 
 pub fn part2(input: &[Robot]) -> u32 {
-    let (step, _positions) = find_tree_step(input, 101, 103, 10);
-    // for LOLs, print the grid at the solution step
-    // println!("\nGrid at step {}:", step);
-    // print_grid(&positions, 101, 103);
-    step
+    part2_crt(input)
 }
 
 pub fn score_p1(input: &[Robot], width: u32, height: u32, steps: u32) -> u32 {
@@ -130,4 +126,52 @@ pub fn print_grid(positions: &[(u32, u32)], width: u32, height: u32) {
         }
         println!();
     }
+}
+
+fn calculate_variance(positions: &[(u32, u32)]) -> f64 {
+    let mean = positions.iter().map(|&(x, _)| x as f64).sum::<f64>() / positions.len() as f64;
+    let variance = positions.iter()
+        .map(|&(x, _)| {
+            let diff = x as f64 - mean;
+            diff * diff
+        })
+        .sum::<f64>() / positions.len() as f64;
+    variance
+}
+
+fn find_best_offset(robots: &[Robot], modulo: u32, use_x: bool) -> u32 {
+    let mut best_variance = f64::MAX;
+    let mut best_offset = 0;
+    
+    for offset in 0..modulo {
+        let positions: Vec<_> = move_robots(robots, modulo, modulo, offset).collect();
+        let variance = if use_x {
+            calculate_variance(&positions)
+        } else {
+            // For y coordinates, swap x and y in the variance calculation
+            calculate_variance(&positions.iter().map(|&(x, y)| (y, x)).collect::<Vec<_>>())
+        };
+        if variance < best_variance {
+            best_variance = variance;
+            best_offset = offset;
+        }
+    }
+    best_offset
+}
+
+// Using Chinese Remainder Theorem to solve.
+// For the x-coordinates, we want to find the offset that minimizes the variance of the x-coordinates.
+// Similarly for the y-coordinates.
+// We then use the Chinese Remainder Theorem to combine the two solutions.
+// Additionally we use the precomputed inverse of WIDTH mod HEIGHT to speed up the CRT.
+pub fn part2_crt(input: &[Robot]) -> u32 {
+    const WIDTH: i64 = 101;
+    const HEIGHT: i64 = 103;
+    const INV_W: i64 = 51;  // Precomputed inverse of WIDTH mod HEIGHT
+    
+    let bx = find_best_offset(input, WIDTH as u32, true) as i64;
+    let by = find_best_offset(input, HEIGHT as u32, false) as i64;
+    
+    let t = bx + INV_W * (by - bx) * WIDTH;
+    t.rem_euclid(WIDTH * HEIGHT) as u32
 }
