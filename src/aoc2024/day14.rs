@@ -1,6 +1,7 @@
 use crate::util::parse::ParseOps;
 use crate::util::point::*;
 use crate::util::hash::*;
+use rayon::prelude::*;
 
 pub struct Robot {
     pub position: Point,
@@ -36,30 +37,14 @@ pub fn score_p1(input: &[Robot], width: u32, height: u32, steps: u32) -> u32 {
 }
 
 pub fn move_robots<'a>(robots: &'a [Robot], width: u32, height: u32, steps: u32) -> impl Iterator<Item = (u32, u32)> + 'a {
+    // precompute steps % width and steps % height
+    let steps_x = steps % width;
+    let steps_y = steps % height;
+    
     robots.iter().map(move |robot| {
-        let width = width as i32;
-        let steps = steps as i32;
-        let velocity_x = robot.velocity.x as i32;
-        let position_x = robot.position.x as i32;
-        
-        // Calculate (position + steps * velocity) % width
-        // = (position % width + (steps * velocity) % width) % width
-        // but position is already bound, so can skip its modulo
-        let new_x = (
-            position_x + 
-            ((steps * velocity_x).rem_euclid(width))
-        ).rem_euclid(width);
-
-        let height = height as i32;
-        let velocity_y = robot.velocity.y as i32;
-        let position_y = robot.position.y as i32;
-        
-        let new_y = (
-            position_y + 
-            ((steps * velocity_y).rem_euclid(height))
-        ).rem_euclid(height);
-
-        (new_x as u32, new_y as u32)
+        let new_x = (robot.position.x as i64 + steps_x as i64 * robot.velocity.x as i64).rem_euclid(width as i64) as u32;
+        let new_y = (robot.position.y as i64 + steps_y as i64 * robot.velocity.y as i64).rem_euclid(height as i64) as u32;
+        (new_x, new_y)
     })
 }
 
@@ -122,13 +107,16 @@ pub fn has_horizontal_line(positions: &[(u32, u32)], min_length: u32) -> bool {
 }
 
 pub fn find_tree_step(robots: &[Robot], width: u32, height: u32, min_length: u32) -> (u32, Vec<(u32, u32)>) {
-    for step in 0.. {
-        let positions: Vec<_> = move_robots(robots, width, height, step).collect();
-        if has_horizontal_line(&positions, min_length) {
-            return (step, positions);
-        }
-    }
-    panic!("No solution found")
+    (0..7000).into_par_iter()
+        .find_map_first(|step| {
+            let positions: Vec<_> = move_robots(robots, width, height, step).collect();
+            if has_horizontal_line(&positions, min_length) {
+                Some((step, positions))
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| panic!("No solution found"))
 }
 
 pub fn print_grid(positions: &[(u32, u32)], width: u32, height: u32) {
