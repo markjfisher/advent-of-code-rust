@@ -23,7 +23,10 @@ pub fn part1(input: &[Robot]) -> u32 {
 }
 
 pub fn part2(input: &[Robot]) -> u32 {
-    part2_crt(input)
+    let steps = part2_crt(input);
+    // let positions = move_robots(input, 101, 103, steps).collect::<Vec<_>>();
+    // print_grid(&positions, 101, 103);
+    steps
 }
 
 pub fn score_p1(input: &[Robot], width: u32, height: u32, steps: u32) -> u32 {
