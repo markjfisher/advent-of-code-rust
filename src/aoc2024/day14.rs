@@ -98,7 +98,7 @@ pub fn has_horizontal_line(positions: &[(u32, u32)], min_length: u32) -> bool {
     
     // for each row, look for continuous sequence. given the random distribution, the solution will
     // be found in the first row that has a sequence of length >= min_length
-    for xs in by_row.values() {
+    for xs in by_row.values().filter(|xs| xs.len() >= min_length as usize) {
         let mut xs = xs.clone();
         xs.sort();
         
