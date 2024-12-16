@@ -68,7 +68,7 @@ fn get_successors(r: &Reindeer, grid: &Grid<u8>) -> Vec<(Reindeer, u32)> {
 }
 
 pub fn all_reindeer_points(solution: AstarSolution<Reindeer>) -> FastSet<Point> {
-    solution.into_iter().fold(FastSet::default(), |mut set, rs| {
+    solution.fold(FastSet::default(), |mut set, rs| {
         set.extend(rs.iter().map(|r| r.pos));
         set
     })
