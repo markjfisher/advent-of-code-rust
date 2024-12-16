@@ -1,7 +1,14 @@
 use aoc::aoc2024::day16::*;
-use aoc::util::point::*;
 use indoc::indoc;
 use pretty_assertions::assert_eq;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+
+fn hash(s: &str) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    s.hash(&mut hasher);
+    hasher.finish()
+}
 
 const EXAMPLE1: &str = "\
 ###############
@@ -53,15 +60,18 @@ fn part2_test() {
 
 #[test]
 fn reindeer_path_to_string_test() {
-    let grid = parse(EXAMPLE1);
-    let start = grid.find(b'S').unwrap();
-    let end = grid.find(b'E').unwrap();
-    let (path, total_cost) = reindeer_path(&grid, start, RIGHT, end).unwrap();
-    let result = reindeer_path_to_string(&grid, &path);
-    // println!("total_cost: {}", total_cost);
-    // println!("{}", result);
-    assert_eq!(total_cost, 7036);
-    assert_eq!(result, indoc! {"\
+    let (grid, solution, _total_cost) = parse(EXAMPLE1);
+
+    let paths: Vec<_> = solution.into_iter().collect();
+    assert_eq!(paths.len(), 3, "Expected exactly 3 possible paths");
+
+    // they come back in random order, so check their hashes equate
+    let mut actual_hashes: Vec<_> = paths.iter()
+        .map(|p| hash(&reindeer_path_to_string(&grid, p)))
+        .collect();
+    actual_hashes.sort();
+
+    let expected1 = indoc! {"\
         ███████████████
         █       █    E█
         █ █ ███ █ ███^█
@@ -69,22 +79,63 @@ fn reindeer_path_to_string_test() {
         █ ███ █████ █^█
         █ █ █       █^█
         █ █ █████ ███^█
-        █    >>>>>>v█^█
+        █  ^>>>>>>>>█^█
+        ███^█ █████v█^█
+        █  ^█     █v█^█
+        █ █^█ ███ █v█^█
+        █^>>  █   █v█^█
+        █^███ █ █ █v█^█
+        █S  █     █v>>█
+        ███████████████"};
+
+    let expected2 = indoc! {"\
+        ███████████████
+        █       █    E█
+        █ █ ███ █ ███^█
+        █     █ █   █^█
+        █ ███ █████ █^█
+        █ █ █       █^█
+        █ █ █████ ███^█
+        █    ^>>>>>>█^█
         ███ █^█████v█^█
         █   █^    █v█^█
         █ █ █^███ █v█^█
-        █>>>>^█   █v█^█
+        █^>>>>█   █v█^█
         █^███ █ █ █v█^█
-        █S  █     █>>^█
-        ███████████████"});
+        █S  █     █v>>█
+        ███████████████"};
+
+    let expected3 = indoc! {"\
+        ███████████████
+        █       █    E█
+        █ █ ███ █ ███^█
+        █     █ █   █^█
+        █ ███ █████ █^█
+        █ █ █       █^█
+        █ █ █████ ███^█
+        █  ^>>>>>>>>█^█
+        ███^█ █████v█^█
+        █^>>█     █v█^█
+        █^█ █ ███ █v█^█
+        █^    █   █v█^█
+        █^███ █ █ █v█^█
+        █S  █     █v>>█
+        ███████████████"};
+
+    let mut expected_hashes: Vec<_> = vec![expected1, expected2, expected3]
+        .into_iter()
+        .map(|s| hash(s))
+        .collect();
+    expected_hashes.sort();
+
+    assert_eq!(actual_hashes, expected_hashes, 
+        "Path hashes don't match expected solutions");
 }
 
 #[test]
 fn reindeer_points_to_string_test1() {
-    let grid = parse(EXAMPLE1);
-    let start = grid.find(b'S').unwrap();
-    let end = grid.find(b'E').unwrap();
-    let points = all_reindeer_points(&grid, start, RIGHT, end);
+    let (grid, solution, _cost) = parse(EXAMPLE1);
+    let points = all_reindeer_points(solution.clone());
     let result = reindeer_points_to_string(&grid, &points);
     // println!("{}", result);
     assert_eq!(result, indoc! {"\
@@ -107,12 +158,11 @@ fn reindeer_points_to_string_test1() {
 
 #[test]
 fn reindeer_points_to_string_test2() {
-    let grid = parse(EXAMPLE2);
-    let start = grid.find(b'S').unwrap();
-    let end = grid.find(b'E').unwrap();
-    let points = all_reindeer_points(&grid, start, RIGHT, end);
+    let (grid, solution, total_cost) = parse(EXAMPLE2);
+    let points = all_reindeer_points(solution.clone());
     let result = reindeer_points_to_string(&grid, &points);
     // println!("{}", result);
+    assert_eq!(total_cost, 11048);
     assert_eq!(result, indoc! {"\
         █████████████████
         █   █   █   █  O█
