@@ -1,5 +1,5 @@
 use crate::util::grid::*;
-use crate::util::hash::FastSet;
+use crate::util::hash::{FastMap, FastSet};
 use crate::util::point::*;
 use pathfinding::prelude::{astar_bag, astar};
 
@@ -16,13 +16,19 @@ pub fn parse(input: &str) -> Grid<u8> {
 pub fn part1(grid: &Grid<u8>) -> u32 {
     let start = grid.find(b'S').unwrap();
     let end = grid.find(b'E').unwrap();
-    reindeer_path(grid, start, RIGHT, end).unwrap().1
+    let (_path, cost) = reindeer_path(grid, start, RIGHT, end).unwrap();
+    // println!("{}", reindeer_path_to_string(grid, &path));
+    cost
 }
 
 pub fn part2(grid: &Grid<u8>) -> u32 {
     let start = grid.find(b'S').unwrap();
     let end = grid.find(b'E').unwrap();
-    all_reindeer_points(grid, start, RIGHT, end).len() as u32
+    let all_points = all_reindeer_points(grid, start, RIGHT, end);
+
+    // println!("{}", reindeer_points_to_string(grid, &all_points));
+    // println!("not a wall count: {}, olympics path count: {}", grid.points().filter(|&p| grid[p] != b'#').count(), all_points.len());
+    all_points.len() as u32
 }
 
 fn get_successors(r: &Reindeer, grid: &Grid<u8>) -> Vec<(Reindeer, u32)> {
@@ -96,7 +102,10 @@ pub fn reindeer_path_to_string(grid: &Grid<u8>, path: &[Reindeer]) -> String {
     result[grid.find(b'S').unwrap()] = b'S';
     result[grid.find(b'E').unwrap()] = b'E';
 
-    result.to_grid_string()
+    let mut char_map = FastMap::default();
+    char_map.insert(b'#', "█");
+    char_map.insert(b'.', " ");
+    result.to_grid_string_with_map(Some(&char_map))
 }
 
 pub fn reindeer_points_to_string(grid: &Grid<u8>, points: &FastSet<Point>) -> String {
@@ -104,5 +113,8 @@ pub fn reindeer_points_to_string(grid: &Grid<u8>, points: &FastSet<Point>) -> St
     for point in points {
         result[*point] = b'O';
     }
-    result.to_grid_string()
+    let mut char_map = FastMap::default();
+    char_map.insert(b'#', "█");
+    char_map.insert(b'.', " ");
+    result.to_grid_string_with_map(Some(&char_map))
 }

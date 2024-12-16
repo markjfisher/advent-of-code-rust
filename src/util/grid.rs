@@ -24,6 +24,7 @@
 //! [`Point`]: crate::util::point
 //! [`parse`]: Grid::parse
 //! [`same_size_with`]: Grid::same_size_with
+use crate::util::hash::*;
 use crate::util::point::*;
 use std::ops::{Index, IndexMut};
 
@@ -46,14 +47,22 @@ impl Grid<u8> {
     }
 
     pub fn to_grid_string(&self) -> String {
+        self.to_grid_string_with_map(None)
+    }
+
+    pub fn to_grid_string_with_map(&self, char_map: Option<&FastMap<u8, &str>>) -> String {
         let mut result = String::with_capacity((self.width * (self.height + 1)) as usize);
         for y in 0..self.height {
             if y > 0 {
                 result.push('\n');
             }
-            let start = (y * self.width) as usize;
-            let end = start + self.width as usize;
-            result.push_str(std::str::from_utf8(&self.bytes[start..end]).unwrap_or_default());
+            for x in 0..self.width {
+                let b = self.bytes[(y * self.width + x) as usize];
+                match char_map.and_then(|m| m.get(&b)) {
+                    Some(s) => result.push_str(s),
+                    None => result.push(b as char),
+                }
+            }
         }
         result
     }
