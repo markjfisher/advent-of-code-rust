@@ -21,7 +21,7 @@ pub mod util {
     // pub mod bitset;
     pub mod grid;
     pub mod hash;
-    // pub mod heap;
+    pub mod heap;
     pub mod integer;
     pub mod iter;
     // pub mod math;
