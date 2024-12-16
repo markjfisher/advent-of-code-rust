@@ -6,6 +6,7 @@ use std::fs::read_to_string;
 use std::iter::empty;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
+use color_eyre::{eyre::Context, Result};
 
 fn main() {
     // Parse command line options
@@ -119,7 +120,7 @@ struct Visualisation {
     year: u32,
     day: u32,
     path: PathBuf,
-    wrapper: fn(String) -> (),
+    wrapper: fn(String) -> Result<()>,
 }
 
 fn do_vis(year: Option<u32>, day: Option<u32>) {
@@ -131,7 +132,7 @@ fn do_vis(year: Option<u32>, day: Option<u32>) {
     for Visualisation { year, day, path, wrapper } in visualisations {
         if let Ok(data) = read_to_string(&path) {
             // just run the visualisation via the wrapper
-            wrapper(data);
+            let _result = wrapper(data).context("msg");
         } else {
             eprintln!("{BOLD}{RED}{year} Day {day:02}{RESET}");
             eprintln!("    Missing input!");
@@ -152,7 +153,7 @@ macro_rules! viz {
                     use $year::$day::*;
 
                     let input = parse(&data);
-                    viz(&input);
+                    viz(&input)
                 };
 
                 Visualisation { year: year.unsigned(), day: day.unsigned(), path, wrapper }

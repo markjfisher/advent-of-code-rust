@@ -5,8 +5,8 @@ use pathfinding::prelude::{astar_bag, AstarSolution};
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug)]
 pub struct Reindeer {
-    pos: Point,
-    dir: Point,
+    pub pos: Point,
+    pub dir: Point,
 }
 
 type Input = (Grid<u8>, AstarSolution<Reindeer>, u32);
@@ -38,7 +38,7 @@ pub fn part2(input: &Input) -> u32 {
     all_points.len() as u32
 }
 
-fn get_successors(r: &Reindeer, grid: &Grid<u8>) -> Vec<(Reindeer, u32)> {
+pub fn get_successors(r: &Reindeer, grid: &Grid<u8>) -> Vec<(Reindeer, u32)> {
     let mut potential_positions = vec![];
 
     let ahead = r.pos + r.dir;
