@@ -5,7 +5,8 @@
 //! [badge]: https://img.shields.io/badge/github-blue?style=for-the-badge&logo=github&labelColor=grey
 //! [link]: https://github.com/maneatingape/advent-of-code-rust
 
-// This was copied from https://github.com/maneatingape/advent-of-code-rust/blob/main/src/lib.rs
+// A great thankyou to @maneatingape for this startup code and project structure.
+// See https://github.com/maneatingape/advent-of-code-rust/blob/main/src/lib.rs
 
 // Portable SIMD API is enabled by "simd" feature.
 #![cfg_attr(feature = "simd", allow(unstable_features), feature(portable_simd))]
@@ -13,101 +14,34 @@
 // Configure rustdoc.
 #![doc(html_logo_url = "https://maneatingape.github.io/advent-of-code-rust/logo.png")]
 
-#![feature(linked_list_cursors)]
-
-/// # Utility modules to handle common recurring Advent of Code patterns.
-pub mod util {
-    pub mod ansi;
-    // pub mod bitset;
-    pub mod grid;
-    pub mod hash;
-    pub mod heap;
-    pub mod integer;
-    pub mod iter;
-    // pub mod math;
-    pub mod md5;
-    pub mod parse;
-    pub mod point;
-    // pub mod slice;
-    // pub mod thread;
+macro_rules! library {
+    ($year:tt $description:literal $($day:tt),*) => {
+        #[doc = concat!("# ", $description)]
+        pub mod $year {$(pub mod $day;)*}
+    }
 }
 
-/// # Help Santa by solving puzzles to fix the weather machine's snow function.
-pub mod aoc2015 {
-    pub mod day01;
-    pub mod day02;
-    pub mod day03;
-    pub mod day04;
-    pub mod day05;
-    pub mod day06;
-    pub mod day07;
-    pub mod day08;
-    pub mod day09;
-    // pub mod day10;
-    // pub mod day11;
-    // pub mod day12;
-    // pub mod day13;
-    // pub mod day14;
-    // pub mod day15;
-}
+library!(util "Utility modules to handle common recurring Advent of Code patterns."
+    ansi, grid, hash, heap, integer, iter, md5, parse, point
+);
 
-pub mod aoc2016 {
-    pub mod day01;
-    pub mod day02;
-    pub mod day03;
-    pub mod day04;
-}
+library!(aoc2015 "AOC 2015"
+    day01, day02, day03, day04, day05, day06, day07, day08, day09
+);
 
-pub mod aoc2017 {
-    pub mod day01;
-    pub mod day02;
-    pub mod day03;
-    pub mod day04;
-    // pub mod day05;
-    // pub mod day06;
-    // pub mod day07;
-    // pub mod day08;
-    // pub mod day09;
-    // pub mod day10;
-}
+library!(aoc2016 "AOC 2016"
+    day01, day02, day03, day04
+);
 
-// # Retrieve the keys to Santa's sleigh with an underwater submarine adventure.
-// pub mod aoc2021 {
-//     pub mod day01;
-//     pub mod day02;
-//     pub mod day03;
-// }
+library!(aoc2017 "AOC 2017"
+    day01, day02, day03, day04
+);
 
-// # Restore global snow production.
-// pub mod aoc2023 {
-//     pub mod day01;
-// }
+library!(aoc2024 "AOC 2024"
+    day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12, day13,
+    day14, day15, day16, day17, day18, day19, day20, day21, day22, day23, day24, day25
+);
 
-pub mod aoc2024 {
-    pub mod day01;
-    pub mod day02;
-    pub mod day03;
-    pub mod day04;
-    pub mod day05;
-    pub mod day06;
-    pub mod day07;
-    pub mod day07_testing;
-    pub mod day08;
-    pub mod day09;
-    pub mod day10;
-    pub mod day11;
-    pub mod day12;
-    pub mod day13;
-    pub mod day14;
-    pub mod day15;
-    pub mod day16;
-    pub mod day17;
-    pub mod day18;
-    pub mod day19;
-    pub mod day20;
-    pub mod day21;
-    pub mod day22;
-    pub mod day23;
-    pub mod day24;
-    pub mod day25;
-}
+library!(vis2024 "Visualisations for AOC 2024"
+    day16
+);

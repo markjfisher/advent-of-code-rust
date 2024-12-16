@@ -43,6 +43,18 @@ cargo test
 cargo test aoc2024::day01
 ```
 
+## Visualisations
+
+Visualisations are run with (e.g.) `cargo run vis2024::day16`, or just with a year argument, e.g. `cargo run vis2024`.
+
+They have their own input files in `input/vis{year}/day{day}.txt`.
+
+Both AOC and visualisation runners simply parse 2 numbers from the 1st command line argument, the year and the day.
+To run a visualisation, the runner looks for the string "vis" at the start of the first arg.
+
+To implement a visualisation, add a new file to `src/vis{year}/day{day}.rs`, and add a reference to it in `src/main.rs`.
+The file should have a `parse` function that returns the input for the visualisation, and a `viz` function that takes the input and visualises it.
+
 ---
 
 [aoc]: https://adventofcode.com/

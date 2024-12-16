@@ -18,6 +18,15 @@ fn main() {
         None => (None, None),
     };
 
+    // first check for visualisations
+    if args().nth(1).map_or(false, |arg| arg.starts_with("vis")) {
+        do_vis(year, day);
+    } else {
+        do_aoc(year, day);
+    }
+}
+
+fn do_aoc(year: Option<u32>, day: Option<u32>) {
     // Filter solutions
     let solutions = empty()
         .chain(aoc2015())
@@ -39,7 +48,7 @@ fn main() {
             let (part1, part2) = wrapper(data);
             let elapsed = instant.elapsed();
 
-            solved += 1;
+            solved += 2;
             duration += elapsed;
 
             println!("{BOLD}{YELLOW}{year} Day {day:02}{RESET}");
@@ -65,112 +74,93 @@ struct Solution {
     wrapper: fn(String) -> (String, String),
 }
 
-macro_rules! solution {
-    ($year:tt, $day:tt) => {{
-        let year = stringify!($year);
-        let day = stringify!($day);
-        let path = Path::new("input").join(year).join(day).with_extension("txt");
+macro_rules! run {
+    ($year:tt $($day:tt),*) => {
+        fn $year() -> Vec<Solution> {
+            vec![$({
+                let year = stringify!($year);
+                let day = stringify!($day);
+                let path = Path::new("input").join(year).join(day).with_extension("txt");
 
-        let wrapper = |data: String| {
-            use $year::$day::*;
+                let wrapper = |data: String| {
+                    use $year::$day::*;
 
-            let input = parse(&data);
-            let part1 = part1(&input);
-            let part2 = part2(&input);
+                    let input = parse(&data);
+                    let part1 = part1(&input);
+                    let part2 = part2(&input);
 
-            (part1.to_string(), part2.to_string())
-        };
+                    (part1.to_string(), part2.to_string())
+                };
 
-        Solution { year: year.unsigned(), day: day.unsigned(), path, wrapper }
-    }};
+                Solution { year: year.unsigned(), day: day.unsigned(), path, wrapper }
+            },)*]
+        }
+    }
 }
 
-fn aoc2015() -> Vec<Solution> {
-    vec![
-        solution!(aoc2015, day01),
-        solution!(aoc2015, day02),
-        solution!(aoc2015, day03),
-        solution!(aoc2015, day04),
-        solution!(aoc2015, day05),
-        solution!(aoc2015, day06),
-        solution!(aoc2015, day07),
-        solution!(aoc2015, day08),
-        solution!(aoc2015, day09),
-        // solution!(aoc2015, day10),
-        // solution!(aoc2015, day11),
-        // solution!(aoc2015, day12),
-        // solution!(aoc2015, day13),
-        // solution!(aoc2015, day14),
-        // solution!(aoc2015, day15),
-    ]
+run!(aoc2015
+    day01, day02, day03, day04, day05, day06, day07, day08, day09
+);
+
+run!(aoc2016
+    day01, day02, day03, day04
+);
+
+run!(aoc2017
+    day01, day02, day03, day04
+);
+
+run!(aoc2024
+    day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12, day13,
+    day14, day15, day16, day17, day18, day19, day20, day21, day22, day23, day24, day25
+);
+
+struct Visualisation {
+    year: u32,
+    day: u32,
+    path: PathBuf,
+    wrapper: fn(String) -> (),
 }
 
-fn aoc2016() -> Vec<Solution> {
-    vec![
-        solution!(aoc2016, day01),
-        solution!(aoc2016, day02),
-        solution!(aoc2016, day03),
-        solution!(aoc2016, day04),
-    ]
+fn do_vis(year: Option<u32>, day: Option<u32>) {
+    let visualisations = empty()
+        .chain(vis2024())
+        .filter(|visualisation| year.is_none_or(|y: u32| y == visualisation.year))
+        .filter(|visualisation| day.is_none_or(|d: u32| d == visualisation.day));
+
+    for Visualisation { year, day, path, wrapper } in visualisations {
+        if let Ok(data) = read_to_string(&path) {
+            // just run the visualisation via the wrapper
+            wrapper(data);
+        } else {
+            eprintln!("{BOLD}{RED}{year} Day {day:02}{RESET}");
+            eprintln!("    Missing input!");
+            eprintln!("    Place input file in {BOLD}{WHITE}{}{RESET}", path.display());
+        }
+    }
 }
 
-fn aoc2017() -> Vec<Solution> {
-    vec![
-        solution!(aoc2017, day01),
-        solution!(aoc2017, day02),
-        solution!(aoc2017, day03),
-        solution!(aoc2017, day04),
-        // solution!(aoc2017, day05),
-        // solution!(aoc2017, day06),
-        // solution!(aoc2017, day07),
-        // solution!(aoc2017, day08),
-        // solution!(aoc2017, day09),
-        // solution!(aoc2017, day10),
-        // solution!(aoc2017, day11),
-        // solution!(aoc2017, day12),
-    ]
+macro_rules! viz {
+    ($year:tt $($day:tt),*) => {
+        fn $year() -> Vec<Visualisation> {
+            vec![$({
+                let year = stringify!($year);
+                let day = stringify!($day);
+                let path = Path::new("input").join(year).join(day).with_extension("txt");
+
+                let wrapper = |data: String| {
+                    use $year::$day::*;
+
+                    let input = parse(&data);
+                    viz(&input);
+                };
+
+                Visualisation { year: year.unsigned(), day: day.unsigned(), path, wrapper }
+            },)*]
+        }
+    }
 }
 
-// fn aoc2021() -> Vec<Solution> {
-//     vec![
-//         // solution!(aoc2021, day01),
-//         // solution!(aoc2021, day02),
-//         // solution!(aoc2021, day03),
-//     ]
-// }
-
-// fn aoc2023() -> Vec<Solution> {
-//     vec![
-//         // solution!(aoc2023, day01),
-//     ]
-// }
-
-fn aoc2024() -> Vec<Solution> {
-    vec![
-        solution!(aoc2024, day01),
-        solution!(aoc2024, day02),
-        solution!(aoc2024, day03),
-        solution!(aoc2024, day04),
-        solution!(aoc2024, day05),
-        solution!(aoc2024, day06),
-        solution!(aoc2024, day07),
-        solution!(aoc2024, day08),
-        solution!(aoc2024, day09),
-        solution!(aoc2024, day10),
-        solution!(aoc2024, day11),
-        solution!(aoc2024, day12),
-        solution!(aoc2024, day13),
-        solution!(aoc2024, day14),
-        solution!(aoc2024, day15),
-        solution!(aoc2024, day16),
-        solution!(aoc2024, day17),
-        solution!(aoc2024, day18),
-        solution!(aoc2024, day19),
-        solution!(aoc2024, day20),
-        solution!(aoc2024, day21),
-        solution!(aoc2024, day22),
-        solution!(aoc2024, day23),
-        solution!(aoc2024, day24),
-        solution!(aoc2024, day25),
-    ]
-}
+viz!(vis2024
+    day16
+);
