@@ -22,9 +22,8 @@ pub fn part2(input: &[usize]) -> i64 {
     for n in 1..=program.len() {
         let target = program[program.len()-n..]
             .iter()
-            .map(|x| x.to_string())
-            .collect::<Vec<String>>()
-            .join(",");
+            .map(|&x| x as i64)
+            .collect::<Vec<i64>>();
 
         let mut new_a = a << 3;
         loop {
@@ -32,7 +31,7 @@ pub fn part2(input: &[usize]) -> i64 {
             comp.reg_a = new_a;
             comp.run();
             
-            if comp.get_output() == target {
+            if comp.output == target {
                 // let octal_digit = new_a & 0x7;
                 // octal_digits.push(octal_digit);
                 // println!("Found digit: {} (a = {})", octal_digit, new_a);
