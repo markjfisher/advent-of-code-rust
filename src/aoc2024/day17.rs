@@ -14,10 +14,10 @@ pub fn part1(input: &[usize]) -> String {
 // we see that the nth digit increments at every 8^nth step, so we have to find a value for last digit, then move backwards until they all match.
 // We're effectively shifting the solution by powers of 8 after finding each digit.
 
-pub fn part2(input: &[usize]) -> String {
+pub fn part2(input: &[usize]) -> i64 {
     let program = &input[3..];
     let mut a = 0;
-    let mut octal_digits = Vec::new();
+    // let mut octal_digits = Vec::new();
 
     for n in 1..=program.len() {
         let target = program[program.len()-n..]
@@ -33,9 +33,9 @@ pub fn part2(input: &[usize]) -> String {
             comp.run();
             
             if comp.get_output() == target {
-                let octal_digit = new_a & 0x7;
-                octal_digits.push(octal_digit);
-                println!("Found digit: {} (a = {})", octal_digit, new_a);
+                // let octal_digit = new_a & 0x7;
+                // octal_digits.push(octal_digit);
+                // println!("Found digit: {} (a = {})", octal_digit, new_a);
                 a = new_a;
                 break;
             }
@@ -43,7 +43,7 @@ pub fn part2(input: &[usize]) -> String {
         }
     }
 
-    println!("Final value in octal: {:o}", a);
-    println!("Final value normal:   {}", a);
-    a.to_string()
+    // println!("Final value in octal: {:o}", a);
+    // println!("Final value normal:   {}", a);
+    a
 }
