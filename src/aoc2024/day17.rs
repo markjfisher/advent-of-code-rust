@@ -45,8 +45,8 @@ pub fn _part2(input: &[usize]) -> usize {
     a
 }
 
-// This version is optimized to my input by manually working out the bitwise operations
-// but still using the reverse digit lookup
+// This version is optimized to my input by manually working out the bitwise operations instead of using the Comp
+// but still using the reverse digit lookup idea
 pub fn part2(input: &[usize]) -> usize {
     let program = &input[3..];
     let mut a = 0;
@@ -58,15 +58,23 @@ pub fn part2(input: &[usize]) -> usize {
         loop {
             let mut digits = Vec::new();
             let mut test_a = new_a;
-            // I tried memoizing the values here, but it's marginally faster to keep calculating the same values rather than looking up in a map
+
+            // I tried memoizing the values here, but it's marginally faster to keep calculating
+            // the same values rather than looking up in a map
             while test_a != 0 {
                 let mut b = test_a & 0x07;
                 b = b ^ 1;
                 let c = test_a >> b;
                 b = b ^ 5;
-                b = b ^ c;
                 test_a >>= 3;
-                digits.push(b & 0x07);
+                b = b ^ c;
+
+                let test_digit = b & 0x07;
+                if test_digit != *target.get(digits.len()).unwrap() {
+                    break;
+                }
+
+                digits.push(test_digit);
                 // println!("test_a: {}, b: {}, c: {}, pushing {}", test_a, b, c, b & 0x07);
             }
 
