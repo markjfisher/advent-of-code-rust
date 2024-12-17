@@ -24,7 +24,6 @@ impl Comp {
 
     fn step(&mut self) {
         let opcode = self.program[self.pc];
-        // self.pc += 1;
 
         match opcode {
             0 => self.op_adv(),
@@ -55,9 +54,7 @@ impl Comp {
     }
 
     fn op_adv(&mut self) {
-        let numerator = self.reg_a;
-        let denominator = 2_i64.pow(self.combo_op() as u32);
-        self.reg_a = numerator / denominator;
+        self.reg_a = self.reg_a >> self.combo_op();
     }
 
     fn op_bxl(&mut self) {
@@ -86,15 +83,11 @@ impl Comp {
     }
 
     fn op_bdv(&mut self) {
-        let numerator = self.reg_a;
-        let denominator = 2_i64.pow(self.combo_op() as u32);
-        self.reg_b = numerator / denominator;
+        self.reg_b = self.reg_a >> self.combo_op();
     }
 
     fn op_cdv(&mut self) {
-        let numerator = self.reg_a;
-        let denominator = 2_i64.pow(self.combo_op() as u32);
-        self.reg_c = numerator / denominator;
+        self.reg_c = self.reg_a >> self.combo_op();
     }
 
     pub fn get_output(&self) -> String {
