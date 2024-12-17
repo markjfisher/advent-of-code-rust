@@ -1,4 +1,5 @@
-use crate::{aoc2024::comp::Comp, util::{hash::{FastMap, FastMapBuilder}, parse::ParseOps}};
+use crate::aoc2024::comp::Comp;
+use crate::util::parse::*;
 
 pub fn parse(input: &str) -> Vec<usize> {
     input.iter_unsigned().collect::<Vec<usize>>()
@@ -14,6 +15,7 @@ pub fn part1(input: &[usize]) -> String {
 // we see that the nth digit increments at every 8^nth step, so we have to find a value for last digit, then move backwards until they all match.
 // We're effectively shifting the solution by powers of 8 after finding each number.
 
+// This version uses the Comp to run the simulation so works on any input
 pub fn _part2(input: &[usize]) -> usize {
     let program = &input[3..];
     let mut a = 0;
@@ -43,10 +45,11 @@ pub fn _part2(input: &[usize]) -> usize {
     a
 }
 
+// This version is optimized to my input by manually working out the bitwise operations
+// but still using the reverse digit lookup
 pub fn part2(input: &[usize]) -> usize {
     let program = &input[3..];
     let mut a = 0;
-    let mut memo: FastMap<usize, Vec<usize>> = FastMap::with_capacity(50);
 
     for n in 1..=program.len() {
         let target = program[program.len()-n..].to_vec();
@@ -55,13 +58,8 @@ pub fn part2(input: &[usize]) -> usize {
         loop {
             let mut digits = Vec::new();
             let mut test_a = new_a;
-            
+            // I tried memoizing the values here, but it's marginally faster to keep calculating the same values rather than looking up in a map
             while test_a != 0 {
-                if let Some(cached) = memo.get(&test_a) {
-                    digits.extend(cached);
-                    break;
-                }
-                
                 let mut b = test_a & 0x07;
                 b = b ^ 1;
                 let c = test_a >> b;
@@ -72,9 +70,6 @@ pub fn part2(input: &[usize]) -> usize {
                 // println!("test_a: {}, b: {}, c: {}, pushing {}", test_a, b, c, b & 0x07);
             }
 
-            // Cache the result for this new_a value
-            memo.insert(new_a, digits.clone());
-            
             // println!("digits: {:?}, target: {:?}", digits, target);
             if digits == target {
                 a = new_a;
