@@ -153,7 +153,7 @@ macro_rules! viz {
                     use $year::$day::*;
 
                     let input = parse(&data);
-                    viz(&input)
+                    viz(input)
                 };
 
                 Visualisation { year: year.unsigned(), day: day.unsigned(), path, wrapper }
