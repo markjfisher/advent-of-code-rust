@@ -1,17 +1,17 @@
 pub struct Comp {
     pub pc: usize,
-    pub reg_a: i64,
-    pub reg_b: i64,
-    pub reg_c: i64,
+    pub reg_a: usize,
+    pub reg_b: usize,
+    pub reg_c: usize,
     pub program: Vec<usize>,
-    pub output: Vec<i64>,
+    pub output: Vec<usize>,
 }
 
 impl Comp {
     pub fn new(input: &[usize]) -> Self {
-        let reg_a = input[0] as i64;
-        let reg_b = input[1] as i64;
-        let reg_c = input[2] as i64;
+        let reg_a = input[0] as usize;
+        let reg_b = input[1] as usize;
+        let reg_c = input[2] as usize;
         let program = input[3..].to_vec();
         Self { pc: 0, reg_a, reg_b, reg_c, program, output: vec![] }
     }
@@ -41,10 +41,10 @@ impl Comp {
         }
     }
 
-    fn combo_op(&mut self) -> i64 {
+    fn combo_op(&mut self) -> usize {
         let operand = self.program[self.pc + 1];
         let value = match operand {
-            0..=3 => operand as i64,
+            0..=3 => operand as usize,
             4 => self.reg_a,
             5 => self.reg_b,
             6 => self.reg_c,
@@ -58,7 +58,7 @@ impl Comp {
     }
 
     fn op_bxl(&mut self) {
-        self.reg_b ^= self.program[self.pc + 1] as i64;
+        self.reg_b ^= self.program[self.pc + 1] as usize;
     }
 
     fn op_bst(&mut self) {

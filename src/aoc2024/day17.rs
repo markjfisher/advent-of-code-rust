@@ -14,16 +14,13 @@ pub fn part1(input: &[usize]) -> String {
 // we see that the nth digit increments at every 8^nth step, so we have to find a value for last digit, then move backwards until they all match.
 // We're effectively shifting the solution by powers of 8 after finding each number.
 
-pub fn part2(input: &[usize]) -> i64 {
+pub fn part2(input: &[usize]) -> usize {
     let program = &input[3..];
     let mut a = 0;
     // let mut found = Vec::new();
 
     for n in 1..=program.len() {
-        let target = program[program.len()-n..]
-            .iter()
-            .map(|&x| x as i64)
-            .collect::<Vec<i64>>();
+        let target = program[program.len()-n..].to_vec();
 
         let mut new_a = a << 3;
         loop {
