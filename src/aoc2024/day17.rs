@@ -20,6 +20,7 @@ pub fn _part2(input: &[usize]) -> usize {
     let program = &input[3..];
     let mut a = 0;
     // let mut found = Vec::new();
+    // let mut comp_runs = 0;
 
     for n in 1..=program.len() {
         let target = program[program.len()-n..].to_vec();
@@ -29,6 +30,7 @@ pub fn _part2(input: &[usize]) -> usize {
             let mut comp = Comp::new(input);
             comp.reg_a = new_a;
             comp.run();
+            // comp_runs += 1;
             
             if comp.output == target {
                 // let next_number = new_a - (a << 3);
@@ -42,6 +44,7 @@ pub fn _part2(input: &[usize]) -> usize {
     }
     // println!("Final value in octal: {:o}", a);
     // println!("Final value normal:   {}", a);
+    // println!("Comp runs: {}", comp_runs);
     a
 }
 
