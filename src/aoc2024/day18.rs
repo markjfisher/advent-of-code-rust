@@ -13,21 +13,28 @@ pub fn part1(input: &[(i32, i32)]) -> u32 {
     shortest_path(&grid).unwrap().1
 }
 
-// brute force find the first block that blocks the path using dijkstra instead of A* in day16
 pub fn part2(input: &[(i32, i32)]) -> String {
-    let mut grid: Grid<u8> = create_grid(input, 71, 71, 1024);
+    let (location, blocks_placed) = blocking_location(input, 71, 71, 1024);
+    println!("blocks_placed: {:?}", blocks_placed);
+    location
+}
+
+pub fn blocking_location(input: &[(i32, i32)], width: i32, height: i32, initial_count: usize) -> (String, u32) {
+    let mut grid: Grid<u8> = create_grid(input, width, height, initial_count);
+    let mut blocks_placed = 0;
 
     // Create iterator over the remaining blocks
-    for &next_block in input.iter().skip(1024) {
+    for &next_block in input.iter().skip(initial_count) {
         grid[Point::new(next_block.0, next_block.1)] = b'#';
-
+        blocks_placed += 1;
+        
         if shortest_path(&grid).is_none() {
-            // Path is blocked, return the coordinates as a comma-separated string
-            return format!("{},{}", next_block.0, next_block.1);
+            // Path is blocked, return the coordinates as a comma-separated string and block count
+            return (format!("{},{}", next_block.0, next_block.1), blocks_placed);
         }
     }
 
-    "0,0".to_string() // Fallback return if no blocking occurs rather than throwing an exception
+    ("0,0".to_string(), 0) // Fallback return if no blocking occurs
 }
 
 pub fn create_grid(input: &[(i32, i32)], width: i32, height: i32, count: usize) -> Grid<u8> {

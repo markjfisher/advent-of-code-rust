@@ -39,7 +39,7 @@ fn part1_test() {
 #[test]
 fn part2_test() {
     let input = parse(INPUT1);
-    assert_eq!(part2(&input), 456);
+    assert_eq!(blocking_location(&input, 7, 7, 12).0, "6,1");
 }
 
 #[test]
