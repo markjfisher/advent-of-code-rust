@@ -3,6 +3,7 @@ use crate::util::iter::*;
 use crate::util::parse::*;
 use crate::util::point::*;
 use pathfinding::prelude::bfs_reach;
+use pathfinding::prelude::dijkstra;
 use std::collections::VecDeque;
 
 pub fn parse(input: &str) -> Grid<u16> {
@@ -23,6 +24,7 @@ pub fn part2(grid: &Grid<u16>) -> String {
     let mut high = non_max_count;
 
     while low < high {
+        // println!("low: {}, high: {}", low, high);
         let mid = low + (high - low) / 2;
         match fast_bfs(grid, mid) {
             Some(_) => low = mid + 1,  // Path found, try higher time
@@ -33,6 +35,28 @@ pub fn part2(grid: &Grid<u16>) -> String {
     // x marks the spot
     let x = grid.points().find(|&v| grid[v] == low - 1).unwrap();
     format!("{},{}", x.x, x.y)
+}
+
+// using hand crafted bfs instead, based on maneatingpie solution
+pub fn fast_bfs(grid: &Grid<u16>, time: u16) -> Option<u32> {
+    let mut todo = VecDeque::new();
+    let mut seen = grid.clone();
+    let end = Point::new(grid.width - 1, grid.height - 1);
+
+    todo.push_back((ORIGIN, 0));
+    seen[ORIGIN] = 0;
+    while let Some((position, cost)) = todo.pop_front() {
+        if position == end {
+            return Some(cost);
+        }
+        for next in ORTHOGONAL.map(|o| position + o) {
+            if grid.contains(next) && time <= seen[next] {
+                todo.push_back((next, cost + 1));
+                seen[next] = 0;
+            }
+        }
+    }
+    None
 }
 
 // An attempt to use library bfs solution, to see if it's easier to write.
@@ -73,24 +97,32 @@ pub fn do_bfs(grid: &Grid<u16>, time: u16) -> Option<u32> {
     min_cost
 }
 
-// using hand crafted bfs instead, based on maneatingpie solution
-pub fn fast_bfs(grid: &Grid<u16>, time: u16) -> Option<u32> {
-    let mut todo = VecDeque::new();
-    let mut seen = grid.clone();
+// dijkstra's turn! even slower than bfs_reach, but avoids the side effect
+pub fn do_dijkstra(grid: &Grid<u16>, time: u16) -> Option<u32> {
+    let start = (ORIGIN, 0u32);
     let end = Point::new(grid.width - 1, grid.height - 1);
-
-    todo.push_back((ORIGIN, 0));
-    seen[ORIGIN] = 0;
-    while let Some((position, cost)) = todo.pop_front() {
-        if position == end {
-            return Some(cost);
-        }
-        for next in ORTHOGONAL.map(|o| position + o) {
-            if grid.contains(next) && time <= seen[next] {
-                todo.push_back((next, cost + 1));
-                seen[next] = 0;
+    
+    let result = dijkstra(
+        &start,
+        |&(pos, cost)| {
+            // Return no successors if we've explored too far
+            if cost > (grid.width * grid.height) as u32 {
+                return vec![];
             }
-        }
-    }
-    None
+            ORTHOGONAL.iter()
+                .filter_map(|&offset| {
+                    let next_pos = pos + offset;
+                    if grid.contains(next_pos) && time <= grid[next_pos] {
+                        Some((next_pos, cost + 1))
+                    } else {
+                        None
+                    }
+                })
+                .map(|next| ((next.0, cost + 1), 1))
+                .collect::<Vec<_>>()
+        },
+        |&(pos, _)| pos == end
+    );
+
+    result.map(|(_, cost)| cost as u32)
 }

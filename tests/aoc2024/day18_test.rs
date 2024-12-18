@@ -33,14 +33,6 @@ const INPUT1: &str = "\
 2,0";
 
 #[test]
-fn part1_test() {
-}
-
-#[test]
-fn part2_test() {
-}
-
-#[test]
 fn do_bfs_test_part1() {
     let mut grid = Grid::new(7, 7, u16::MAX);
     for (i, [x, y]) in INPUT1.iter_signed().chunk::<2>().enumerate() {
@@ -48,6 +40,18 @@ fn do_bfs_test_part1() {
     }
 
     let result = do_bfs(&grid, 12);
+    assert!(result.is_some());
+    assert_eq!(result.unwrap(), 22);
+}
+
+#[test]
+fn do_dijkstra_test_part1() {
+    let mut grid = Grid::new(7, 7, u16::MAX);
+    for (i, [x, y]) in INPUT1.iter_signed().chunk::<2>().enumerate() {
+        grid[Point::new(x, y)] = i as u16;
+    }
+
+    let result = do_dijkstra(&grid, 12);
     assert!(result.is_some());
     assert_eq!(result.unwrap(), 22);
 }
