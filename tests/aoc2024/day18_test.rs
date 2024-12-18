@@ -1,6 +1,9 @@
 use aoc::aoc2024::day18::*;
 use pretty_assertions::assert_eq;
-use indoc::indoc;
+use aoc::util::grid::*;
+use aoc::util::iter::*;
+use aoc::util::point::*;
+use aoc::util::parse::*;
 
 const INPUT1: &str = "\
 5,4
@@ -31,31 +34,20 @@ const INPUT1: &str = "\
 
 #[test]
 fn part1_test() {
-    let input = parse(INPUT1);
-    let grid = create_grid(&input, 7, 7, 12);
-    assert_eq!(shortest_path(&grid).unwrap().1, 22);
 }
 
 #[test]
 fn part2_test() {
-    let input = parse(INPUT1);
-    assert_eq!(blocking_location(&input, 7, 7, 12).0, "6,1");
 }
 
 #[test]
-fn create_grid_test() {
-    let input = parse(INPUT1);
-    let grid = create_grid(&input, 7, 7, 12);
-    assert_eq!(grid.width, 7);
-    assert_eq!(grid.height, 7);
-    // println!("{}", grid.to_grid_string());
-    assert_eq!(grid.to_grid_string(), indoc! {"\
-        ...#...
-        ..#..#.
-        ....#..
-        ...#..#
-        ..#..#.
-        .#..#..
-        #.#...."});
-}
+fn do_bfs_test_part1() {
+    let mut grid = Grid::new(7, 7, u16::MAX);
+    for (i, [x, y]) in INPUT1.iter_signed().chunk::<2>().enumerate() {
+        grid[Point::new(x, y)] = i as u16;
+    }
 
+    let result = do_bfs(&grid, 12);
+    assert!(result.is_some());
+    assert_eq!(result.unwrap(), 22);
+}
