@@ -20,25 +20,6 @@ fn part1_test() {
 #[test]
 fn part2_test() {
     let input = parse(EXAMPLE);
-    assert_eq!(part2(&input), 456);
+    assert_eq!(part2(&input), 16);
 }
 
-#[test]
-fn test_sequence_combinations() {
-    let valid_sequences = vec!["r", "wr", "b", "a", "ab", "b"];
-    
-    let result = find_sequence_combinations("x", &valid_sequences);
-    assert_eq!(result.len(), 0);
-    
-    let result = find_sequence_combinations("r", &valid_sequences);
-    assert_eq!(result, vec![vec!["r"]]);
-    
-    let result = find_sequence_combinations("wr", &valid_sequences);
-    assert_eq!(result, vec![vec!["wr"]]);
-    
-    let result = find_sequence_combinations("rb", &valid_sequences);
-    assert_eq!(result, vec![vec!["r", "b"]]);
-
-    let result = find_sequence_combinations("abb", &valid_sequences);
-    assert_eq!(result, vec![vec!["a", "b", "b"], vec!["ab", "b"]]);
-}

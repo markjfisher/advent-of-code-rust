@@ -1,69 +1,44 @@
-pub fn parse(input: &str) -> (Vec<&str>, Vec<String>) {
+pub fn parse(input: &str) -> Vec<u64> {
     let mut parts = input.split("\n\n");
     
-    // Parse valid sequences (first line)
-    let sequences = parts
+    let sequences: Vec<&str> = parts
         .next()
         .unwrap()
         .split(',')
         .map(|s| s.trim())
         .collect();
     
-    // Parse input strings (remaining lines)
-    let inputs = parts
+    // compute combinations on the input strings once, part 1 is a count of those that are not 0
+    parts
         .next()
         .unwrap()
         .lines()
-        .map(|s| s.to_string())
-        .collect();
-    
-    (sequences, inputs)
+        .map(|input| count_valid_combinations(input, &sequences))
+        .collect()
 }
 
-pub fn part1(input: &(Vec<&str>, Vec<String>)) -> u32 {
-    let (sequences, inputs) = input;
+fn count_valid_combinations(input: &str, valid_sequences: &[&str]) -> u64 {
+    // ways_from_index[i] represents the number of ways to make the substring from i to end
+    let mut ways_from_index = vec![0u64; input.len() + 1];
+    ways_from_index[input.len()] = 1;  // empty string has one way to make it
     
-    // No need for conversion anymore
-    inputs.iter()
-        .filter(|input| !find_sequence_combinations(input, sequences).is_empty())
-        .count() as u32
-}
-
-pub fn part2(_input: &(Vec<&str>, Vec<String>)) -> u32 {
-    456
-}
-
-pub fn find_sequence_combinations(input: &str, valid_sequences: &[&str]) -> Vec<Vec<String>> {
-    let mut results = Vec::new();
-    
-    fn recurse(
-        remaining: &str,
-        valid_seqs: &[&str],
-        current_sequence: Vec<String>,
-        all_results: &mut Vec<Vec<String>>
-    ) {
-        if remaining.is_empty() {
-            if !all_results.contains(&current_sequence) {
-                all_results.push(current_sequence);
-            }
-            return;
-        }
-        
-        for seq in valid_seqs {
-            if remaining.starts_with(seq) {
-                let mut new_sequence = current_sequence.clone();
-                new_sequence.push(seq.to_string());
-                
-                recurse(
-                    &remaining[seq.len()..],
-                    valid_seqs,
-                    new_sequence,
-                    all_results
-                );
+    for i in (0..input.len()).rev() {
+        for &seq in valid_sequences {
+            if input[i..].starts_with(seq) {
+                ways_from_index[i] = ways_from_index[i].saturating_add(ways_from_index[i + seq.len()]);
             }
         }
     }
     
-    recurse(input, valid_sequences, Vec::new(), &mut results);
-    results
+    ways_from_index[0]
+}
+
+pub fn part1(input: &[u64]) -> u32 {
+    input.iter()
+        .filter(|&&count| count > 0)
+        .count() as u32
+}
+
+pub fn part2(input: &[u64]) -> u64 {
+    input.iter().sum()
 }
