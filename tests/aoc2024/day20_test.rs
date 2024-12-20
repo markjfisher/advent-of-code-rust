@@ -1,4 +1,5 @@
 use aoc::aoc2024::day20::*;
+use aoc::util::grid::*;
 
 const EXAMPLE: &str = "\
 ###############
@@ -19,8 +20,8 @@ const EXAMPLE: &str = "\
 
 #[test]
 fn part1_test() {
-    let bfs_times = parse(EXAMPLE);
-    assert_eq!(count_improvements(&bfs_times, 2, 64).0, 1);
+    let grid = Grid::parse(EXAMPLE);
+    let bfs_times = bfs_times(&grid);
     assert_eq!(count_improvements(&bfs_times, 2, 40).0, 2);
     assert_eq!(count_improvements(&bfs_times, 2, 38).0, 3);
     assert_eq!(count_improvements(&bfs_times, 2, 36).0, 4);
@@ -35,7 +36,8 @@ fn part1_test() {
 
 #[test]
 fn part2_test() {
-    let bfs_times = parse(EXAMPLE);
+    let grid = Grid::parse(EXAMPLE);
+    let bfs_times = bfs_times(&grid);
     assert_eq!(count_improvements(&bfs_times, 20, 76).1, 3);
     assert_eq!(count_improvements(&bfs_times, 20, 74).1, 7);
     assert_eq!(count_improvements(&bfs_times, 20, 72).1, 29);

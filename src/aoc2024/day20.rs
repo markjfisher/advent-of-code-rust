@@ -2,8 +2,10 @@ use crate::util::grid::*;
 use crate::util::point::*;
 use std::collections::VecDeque;
 
-pub fn parse(input: &str) -> Grid<usize> {
-    bfs_times(&Grid::parse(input))
+// find both solutions as we parse
+pub fn parse(input: &str) -> (u32, u32) {
+    let bfs_times = bfs_times(&Grid::parse(input));
+    count_improvements(&bfs_times, 20, 100)
 }
 
 // find the time it takes to reach each every point from start
@@ -49,7 +51,8 @@ pub fn count_improvements(
 
     while step_time < path_points.len() {
         let current = path_points[step_time];
-        
+        // I tried checking if we were close enough to the end to ignore the point, but it didn't work. CBA to work out why
+
         // look around the current point to see if we connect with somewhere else that's better than our improvement minimum
         let current_step_time = grid_bfs_time[current];
         for dy in -max_range..=max_range {
@@ -76,10 +79,10 @@ pub fn count_improvements(
     (improvements_p1, improvements_p2)
 }
 
-pub fn part1(bfs_grid: &Grid<usize>) -> u32 {
-    count_improvements(&bfs_grid, 20, 100).0
+pub fn part1(solution: &(u32, u32)) -> u32 {
+    solution.0
 }
 
-pub fn part2(bfs_grid: &Grid<usize>) -> u32 {
-    count_improvements(&bfs_grid, 20, 100).1
+pub fn part2(solution: &(u32, u32)) -> u32 {
+    solution.1
 }
