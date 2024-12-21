@@ -1,304 +1,204 @@
-use std::collections::{HashMap, VecDeque};
+use crate::util::point::Point;
 
+// This day was extremely difficult.
+// I initially implemented modelling different types of Robot and their movements, calculating the strings for each next key press.
+// However it became difficult to work out the minimal solution between iterations.
+// I also suspected it wouldn't scale for part 2, as it was escalating on the strings being used. I was right, Eric hit us with a huge depth of 25.
+
+// This solution came from realising that there are only 12 different patterns to moving around,
+// and that v<<A is just v<A with an extra keypress, because we are optimising the order of the keypresses so the next robot moves minimally.
+// So we could count and recurse, and use memoization to capture previous calculations.
 
 pub fn parse(input: &str) -> Vec<&str> {
     input.lines().collect()
 }
 
-pub fn part1(_input: &[&str]) -> u32 {
-    123
+pub fn part1(input: &[&str]) -> i64 {
+    input.iter()
+        .map(|line| {
+            let multiplier = line[..line.len()-1].parse::<i64>().unwrap();
+            multiplier * type_code(line, 2)
+        })
+        .sum()
 }
 
-pub fn part2(_input: &[&str]) -> u32 {
-    456
+pub fn part2(input: &[&str]) -> i64 {
+    input.iter()
+        .map(|line| {
+            let multiplier = line[..line.len()-1].parse::<i64>().unwrap();
+            multiplier * type_code(line, 25)
+        })
+        .sum()
 }
 
-pub fn complexity(input: &str) -> u32 {
-    // Create and execute the robot chain
-    let mut chain = RobotChain::new(input);
-    chain.add_robot(NumpadRobot::new())
-        .add_robot(DirectionRobot::new())
-        .add_robot(DirectionRobot::new());
-    
-    let result = chain.execute();
-    
-    // Extract the number from the input string (everything except the last 'A')
-    let number: u32 = input[..input.len()-1].parse().unwrap();
-
-    println!("result: {}, number: {}", result, number);
-    
-    // Return the length of the result multiplied by the input number
-    (result.len() as u32) * number
+// 2 directions per diagonal + each cardinal direction gives 12 different patterns
+// we don't need to double count here on key presses, that will happen later
+#[derive(Debug, Clone, Copy)]
+pub enum ButtonPattern {
+    LUA, // Left-Up-A
+    ULA, // Up-Left-A
+    LA,  // Left-A
+    LDA, // Left-Down-A
+    DLA, // Down-Left-A
+    UA,  // Up-A
+    DA,  // Down-A
+    URA, // Up-Right-A
+    RUA, // Right-Up-A
+    RA,  // Right-A
+    DRA, // Down-Right-A
+    RDA, // Right-Down-A
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Key {
-    // Numpad keys
-    Key0,
-    Key1, Key2, Key3,
-    Key4, Key5, Key6,
-    Key7, Key8, Key9,
-    KeyA,
-    // Direction pad keys
-    Up, Down, Left, Right,
-    DirA,
-}
+// This is a recursive function that counts the number of button presses for a given pattern at a given depth
+// It works on a base pattern (e.g. <^A (LUA)) and works out what the next robot would do to achieve that pattern.
+// An example is:
+//                  <    to    ^    to    A
+//   requires key presses:
+//   <^A (LUA) -> v<<A (DLA), >^A (RUA), >A (RA)
+pub fn count_pattern_presses(pattern: ButtonPattern, depth: u32, pattern_cache: &mut Vec<Vec<i64>>) -> i64 {
+    use ButtonPattern::*;
 
-// Base trait defining common behavior
-pub trait Robot: std::any::Any {
-    fn current(&self) -> Key;
-    fn key_positions(&self) -> &HashMap<Key, (i32, i32)>;
-    fn adjacency(&self) -> &HashMap<Key, Vec<(Key, char)>>;
-    fn set_key(&mut self, key: Key);
-    
-    fn char_to_key(c: char) -> Key where Self: Sized {
-        panic!("char_to_key not implemented for this robot type - attempting to convert {}", c)
+    if depth == 0 {
+        // base case, 2 presses for each cardinal direction, 3 for diagonals
+        return match pattern {
+            LA | UA | DA | RA => 2,
+            _ => 3,
+        };
     }
 
-    fn press(&mut self, key: Key) -> String {
-        let path = self.find_path(key);
-        self.set_key(key);
-        path
+    // memoization - the key to performance!!
+    // is this pattern cached?
+    if pattern_cache[pattern as usize][depth as usize] != 0 {
+        return pattern_cache[pattern as usize][depth as usize];
     }
 
-    fn find_path(&self, target: Key) -> String {
-        if self.current() == target {
-            return String::new();
+    // break down each pattern to the next version down the chain
+    let result = match pattern {
+        LUA => { // becomes v<<A >^A >A 
+            count_pattern_presses(DLA, depth - 1, pattern_cache) +
+            count_pattern_presses(RUA, depth - 1, pattern_cache) +
+            count_pattern_presses(RA, depth - 1, pattern_cache) + 1 // +1 is for repeated '<'
+        }
+        ULA => { // becomes <A v<A >>^A
+            count_pattern_presses(LA, depth - 1, pattern_cache) +
+            count_pattern_presses(DLA, depth - 1, pattern_cache) +
+            count_pattern_presses(RUA, depth - 1, pattern_cache) + 1 // +1 is for repeated '>'
+        }
+        LA => { // becomes v<<A >>^A
+            count_pattern_presses(DLA, depth - 1, pattern_cache) +
+            count_pattern_presses(RUA, depth - 1, pattern_cache) + 2 // +2 is for repeated '<' and '>'
+        }
+        LDA => { // becomes v<<A >A ^>A
+            count_pattern_presses(DLA, depth - 1, pattern_cache) +
+            count_pattern_presses(RA, depth - 1, pattern_cache) +
+            count_pattern_presses(URA, depth - 1, pattern_cache) + 1 // +1 is for repeated '<'
+        }
+        DLA => { // becomes <vA <A >>^A
+            count_pattern_presses(LDA, depth - 1, pattern_cache) +
+            count_pattern_presses(LA, depth - 1, pattern_cache) +
+            count_pattern_presses(RUA, depth - 1, pattern_cache) + 1 // +1 is for repeated '>'
+        }
+        UA => { // becomes <A >A
+            count_pattern_presses(LA, depth - 1, pattern_cache) +
+            count_pattern_presses(RA, depth - 1, pattern_cache)
+        }
+        DA => { // becomes <vA ^>A
+            count_pattern_presses(LDA, depth - 1, pattern_cache) +
+            count_pattern_presses(URA, depth - 1, pattern_cache)
+        }
+        URA => { // becomes <A v>A ^A
+            count_pattern_presses(LA, depth - 1, pattern_cache) +
+            count_pattern_presses(DRA, depth - 1, pattern_cache) +
+            count_pattern_presses(UA, depth - 1, pattern_cache)
+        }
+        RUA => { // becomes vA <^A >A
+            count_pattern_presses(DA, depth - 1, pattern_cache) +
+            count_pattern_presses(LUA, depth - 1, pattern_cache) +
+            count_pattern_presses(RA, depth - 1, pattern_cache)
+        }
+        RA => { // becomes vA ^A
+            count_pattern_presses(DA, depth - 1, pattern_cache) +
+            count_pattern_presses(UA, depth - 1, pattern_cache)
+        }
+        DRA => { // becomes <vA >A ^A
+            count_pattern_presses(LDA, depth - 1, pattern_cache) +
+            count_pattern_presses(RA, depth - 1, pattern_cache) +
+            count_pattern_presses(UA, depth - 1, pattern_cache)
+        }
+        RDA => { // becomes vA <A ^>A
+            count_pattern_presses(DA, depth - 1, pattern_cache) +
+            count_pattern_presses(LA, depth - 1, pattern_cache) +
+            count_pattern_presses(URA, depth - 1, pattern_cache)
+        }
+    };
+
+    pattern_cache[pattern as usize][depth as usize] = result;
+    result
+}
+
+fn type_code(code: &str, depth: u32) -> i64 {
+    use ButtonPattern::*;
+
+    let mut pos = Point::new(2, 3); // Start at 'A'
+    let mut count = 0;
+    let mut pattern_cache = vec![vec![0; 26]; 12]; // 12 patterns x 26 depths
+
+    for c in code.chars() {
+        let target = match c {
+            'A' => Point::new(2, 3),
+            '0' => Point::new(1, 3),
+            '1'..='9' => {
+                let v = c as i32 - '1' as i32;
+                Point::new(v % 3, 2 - (v / 3))
+            }
+            _ => continue,
+        };
+
+        if target == pos {
+            count += 1;
+            continue;
         }
 
-        // BFS to find shortest path
-        let mut queue = VecDeque::new();
-        let mut visited = HashMap::new();
-        
-        queue.push_back((self.current(), String::new()));
-        visited.insert(self.current(), String::new());
-
-        while let Some((pos, path)) = queue.pop_front() {
-            for &(next, dir) in &self.adjacency()[&pos] {
-                if !visited.contains_key(&next) {
-                    let new_path = format!("{}{}", path, dir);
-                    if next == target {
-                        return new_path;
-                    }
-                    visited.insert(next, new_path.clone());
-                    queue.push_back((next, new_path));
+        // This is the logic for moving between two points ensuring we don't cut the blank spaces, and choosing an optimal path to reduce presses.
+        // Nice use of match to setup the 3 conditions; is it vertical/horizontal/right
+        let pattern = match (target.x == pos.x, target.y == pos.y, target.x > pos.x) {
+            // Vertically aligned
+            (true, false, _) => {
+                if target.y > pos.y { DA } else { UA }
+            },
+            // Horizontally aligned
+            (false, true, right) => {
+                if right { RA } else { LA }
+            },
+            // Moving right, diagonally - avoid the blank space
+            (false, false, true) => {
+                if target.y > pos.y {
+                    // Can't start vertically if it would move us into (3, 0)
+                    if target.y == 3 && pos.x == 0 { RDA } else { DRA }
+                } else {
+                    URA
                 }
-            }
-        }
-
-        unreachable!()
-    }
-}
-
-// Common implementation details
-#[derive(Debug)]
-struct RobotImpl {
-    current: Key,
-    key_positions: HashMap<Key, (i32, i32)>,
-    adjacency: HashMap<Key, Vec<(Key, char)>>,
-}
-
-impl RobotImpl {
-    fn build_adjacency(
-        key_positions: HashMap<Key, (i32, i32)>,
-        initial_key: Key,
-        is_valid_connection: impl Fn(Key, Key) -> bool
-    ) -> Self {
-        let mut adjacency = HashMap::new();
-        
-        // Build adjacency list with movement directions
-        for (key, &(col, row)) in &key_positions {
-            let mut neighbors = Vec::new();
-            
-            // Check all possible neighbors
-            for (dc, dr, dir) in [(1, 0, '>'), (-1, 0, '<'), (0, -1, '^'), (0, 1, 'v')] {
-                let new_col = col + dc;
-                let new_row = row + dr;
-                
-                // Find key at new position
-                if let Some(&neighbor) = key_positions.iter()
-                    .find(|&(_, &pos)| pos == (new_col, new_row))
-                    .map(|(k, _)| k) {
-                    if is_valid_connection(*key, neighbor) {
-                        neighbors.push((neighbor, dir));
-                    }
+            },
+            // Moving left, diagonally
+            (false, false, false) => {
+                if target.y > pos.y {
+                    LDA
+                } else {
+                    // If we would move into (3, 0) going horizontally, start by going up first
+                    if target.x == 0 && pos.y == 3 { ULA } else { LUA }
                 }
-            }
-            
-            adjacency.insert(*key, neighbors);
-        }
+            },
+            _ => unreachable!(),
+        };
 
-        Self {
-            current: initial_key,
-            key_positions,
-            adjacency,
-        }
+        // Add extra presses for moves beyond the first in each direction
+        let extra = std::cmp::max(0, (target.y - pos.y).abs() - 1) + 
+                   std::cmp::max(0, (target.x - pos.x).abs() - 1);
+
+        count += count_pattern_presses(pattern, depth, &mut pattern_cache) + extra as i64;
+        pos = target;
     }
+
+    count
 }
 
-// Concrete robot types
-#[derive(Debug)]
-pub struct NumpadRobot(RobotImpl);
-
-impl NumpadRobot {
-    pub fn new() -> Self {
-        let mut key_positions = HashMap::new();
-        
-        // Define positions (col, row) for each key
-        key_positions.insert(Key::Key1, (0, 2));
-        key_positions.insert(Key::Key2, (1, 2));
-        key_positions.insert(Key::Key3, (2, 2));
-        key_positions.insert(Key::Key4, (0, 1));
-        key_positions.insert(Key::Key5, (1, 1));
-        key_positions.insert(Key::Key6, (2, 1));
-        key_positions.insert(Key::Key7, (0, 0));
-        key_positions.insert(Key::Key8, (1, 0));
-        key_positions.insert(Key::Key9, (2, 0));
-        key_positions.insert(Key::Key0, (1, 3));
-        key_positions.insert(Key::KeyA, (2, 3));
-
-        Self(RobotImpl::build_adjacency(
-            key_positions,
-            Key::KeyA,
-            |_, _| true // All adjacent keys are connected in numpad
-        ))
-    }
-
-}
-
-#[derive(Debug)]
-pub struct DirectionRobot(RobotImpl);
-
-impl DirectionRobot {
-    pub fn new() -> Self {
-        let mut key_positions = HashMap::new();
-        
-        // Define positions (col, row) for direction pad
-        key_positions.insert(Key::Up, (1, 0));
-        key_positions.insert(Key::Left, (0, 1));
-        key_positions.insert(Key::Down, (1, 1));
-        key_positions.insert(Key::Right, (2, 1));
-        key_positions.insert(Key::DirA, (2, 0));
-
-        Self(RobotImpl::build_adjacency(
-            key_positions,
-            Key::DirA,
-            |key, neighbor| matches!(
-                (key, neighbor),
-                (Key::DirA, Key::Up) | (Key::DirA, Key::Right) |
-                (Key::Up, Key::DirA) | (Key::Up, Key::Down) |
-                (Key::Down, Key::Up) | (Key::Down, Key::Left) | (Key::Down, Key::Right) |
-                (Key::Left, Key::Down) |
-                (Key::Right, Key::Down)
-            )
-        ))
-    }
-
-    fn control_robot(&self, sequence: &str, robot: &mut dyn Robot) -> String {
-        let mut result = String::new();
-
-        for c in sequence.chars() {
-            let target = if robot.type_id() == std::any::TypeId::of::<NumpadRobot>() {
-                NumpadRobot::char_to_key(c)
-            } else if robot.type_id() == std::any::TypeId::of::<DirectionRobot>() {
-                DirectionRobot::char_to_key(c)
-            } else {
-                panic!("Unknown robot type")
-            };
-            
-            let path = robot.press(target);
-            if !path.is_empty() {
-                result.push_str(&path);
-            }
-            result.push('A');
-        }
-
-        result
-    }
-
-    pub fn control_numbot(&self, sequence: &str, numpad: &mut NumpadRobot) -> String {
-        self.control_robot(sequence, numpad)
-    }
-
-    pub fn control_dirbot(&self, sequence: &str, dir_robot: &mut DirectionRobot) -> String {
-        self.control_robot(sequence, dir_robot)
-    }
-}
-
-// Implement Robot trait for both types
-impl Robot for NumpadRobot {
-    fn current(&self) -> Key { self.0.current }
-    fn key_positions(&self) -> &HashMap<Key, (i32, i32)> { &self.0.key_positions }
-    fn adjacency(&self) -> &HashMap<Key, Vec<(Key, char)>> { &self.0.adjacency }
-    fn set_key(&mut self, key: Key) { self.0.current = key; }
-
-    fn char_to_key(c: char) -> Key where Self: Sized {
-        match c {
-            '0' => Key::Key0,
-            '1' => Key::Key1,
-            '2' => Key::Key2,
-            '3' => Key::Key3,
-            '4' => Key::Key4,
-            '5' => Key::Key5,
-            '6' => Key::Key6,
-            '7' => Key::Key7,
-            '8' => Key::Key8,
-            '9' => Key::Key9,
-            'A' => Key::KeyA,
-            _ => panic!("Invalid numpad key: {}", c),
-        }
-    }
-}
-
-impl Robot for DirectionRobot {
-    fn current(&self) -> Key { self.0.current }
-    fn key_positions(&self) -> &HashMap<Key, (i32, i32)> { &self.0.key_positions }
-    fn adjacency(&self) -> &HashMap<Key, Vec<(Key, char)>> { &self.0.adjacency }
-    fn set_key(&mut self, key: Key) { self.0.current = key; }
-
-    fn char_to_key(c: char) -> Key where Self: Sized {
-        match c {
-            '^' => Key::Up,
-            'v' => Key::Down,
-            '<' => Key::Left,
-            '>' => Key::Right,
-            'A' => Key::DirA,
-            _ => panic!("Invalid direction: {}", c),
-        }
-    }
-}
-
-// A Box<T> is a smart pointer to heap-allocated data
-// dyn Robot means "any type that implements the Robot trait"
-// We need these because we want to store different robot types in the same vector
-pub struct RobotChain {
-    sequence: String,
-    robots: Vec<Box<dyn Robot>>,
-}
-
-impl RobotChain {
-    pub fn new(sequence: &str) -> Self {
-        Self {
-            sequence: sequence.to_string(),
-            robots: Vec::new(),
-        }
-    }
-
-    // 'static means the Robot type must have a static lifetime
-    // This is needed because we're storing it in our vector
-    pub fn add_robot(&mut self, robot: impl Robot + 'static) -> &mut Self {
-        self.robots.push(Box::new(robot));
-        self
-    }
-
-    pub fn execute(&mut self) -> String {
-        let mut current_sequence = self.sequence.clone();
-        // Create a single controller robot to manage all the others
-        let controller = DirectionRobot::new();
-        
-        for robot in &mut self.robots {
-            current_sequence = controller.control_robot(&current_sequence, robot.as_mut());
-        }
-        current_sequence
-    }
-}
