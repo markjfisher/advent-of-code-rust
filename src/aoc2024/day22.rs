@@ -1,13 +1,32 @@
 use crate::util::parse::ParseOps;
+use std::sync::Mutex;
+use crate::util::thread::*;
+
+struct SharedState {
+    p1: usize,
+    p2: Vec<usize>,
+}
 
 pub fn parse(input: &str) -> (usize, usize) {
-    // 130321 is explained in the hash function
-    let mut totals = vec![0; 130321];
-    let mut history = vec![usize::MAX; 130321];
-    let mut p1_val = 0;
+    let numbers = input.iter_unsigned().collect();
+    let mutex = Mutex::new(SharedState {
+        p1: 0,
+        p2: vec![0; 130321],
+    });
 
-    input.iter_unsigned().collect::<Vec<usize>>().into_iter().enumerate().for_each(|(i, start)| {
-        // generate first 4 numbers in sequence
+    spawn_batches(numbers, |batch| worker(&mutex, &batch));
+
+    let result = mutex.into_inner().unwrap();
+    (result.p1, result.p2.iter().max().copied().unwrap())
+}
+
+fn worker(mutex: &Mutex<SharedState>, batch: &[usize]) {
+    // these are the per thread values
+    let mut local_p1_total = 0;
+    let mut local_totals = vec![0; 130321];
+    let mut local_history = vec![usize::MAX; 130321];
+
+    for (i, &start) in batch.iter().enumerate() {
         let [n1, n2, n3, n4] = std::array::from_fn(|i| {
             (0..=i).fold(start, |acc, _| gen(acc))
         });
@@ -22,29 +41,28 @@ pub fn parse(input: &str) -> (usize, usize) {
         ];
 
         let mut curr = n4;
-
-        (4..2000).fold(n4, |prev, _| {
+        let final_val = (4..2000).fold(n4, |prev, _| {
             curr = gen(prev);
             
-            // rotate differences and add new one
             diffs.rotate_left(1);
             diffs[3] = shift_diff(prev, curr);
             
-            // calculate hash and update totals if unseen
             let key = hash(diffs[0], diffs[1], diffs[2], diffs[3]);
-            // only add the total once, as the sequence could appear multiple times! OUCH here
-            if history[key] != i {
-                totals[key] += curr % 10;
-                history[key] = i;
+            if local_history[key] != i {
+                local_totals[key] += curr % 10;
+                local_history[key] = i;
             }
             curr
         });
+        
+        local_p1_total += final_val;
+    }
 
-        p1_val += curr;
-    });
-
-    (p1_val, totals.iter().max().copied().unwrap())
-
+    // Merge results into shared state
+    let mut exclusive = mutex.lock().unwrap();
+    exclusive.p1 += local_p1_total;
+    exclusive.p2.iter_mut().zip(local_totals.iter())
+        .for_each(|(a, &b)| *a += b);
 }
 
 pub fn part1(solution: &(usize, usize)) -> usize {

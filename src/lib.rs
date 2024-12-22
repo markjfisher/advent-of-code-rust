@@ -5,7 +5,7 @@
 //! [badge]: https://img.shields.io/badge/github-blue?style=for-the-badge&logo=github&labelColor=grey
 //! [link]: https://github.com/maneatingape/advent-of-code-rust
 
-// A great thankyou to @maneatingape for this startup code and project structure.
+// A great thank you to @maneatingape for this startup code and project structure.
 // See https://github.com/maneatingape/advent-of-code-rust/blob/main/src/lib.rs
 
 // Portable SIMD API is enabled by "simd" feature.
@@ -22,7 +22,7 @@ macro_rules! library {
 }
 
 library!(util "Utility modules to handle common recurring Advent of Code patterns."
-    ansi, grid, hash, heap, integer, iter, md5, parse, point
+    ansi, grid, hash, heap, integer, iter, md5, parse, point, thread
 );
 
 library!(aoc2015 "AOC 2015"
