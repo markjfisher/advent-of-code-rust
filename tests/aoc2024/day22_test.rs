@@ -6,6 +6,12 @@ const EXAMPLE1: &str = "\
 100
 2024";
 
+const EXAMPLE2: &str = "\
+1
+2
+3
+2024";
+
 #[test]
 fn part1_test() {
     let input = parse(EXAMPLE1);
@@ -14,6 +20,6 @@ fn part1_test() {
 
 #[test]
 fn part2_test() {
-    let input = parse(EXAMPLE1);
-    assert_eq!(part2(&input), 456);
+    let input = parse(EXAMPLE2);
+    assert_eq!(part2(&input), 23);
 }
