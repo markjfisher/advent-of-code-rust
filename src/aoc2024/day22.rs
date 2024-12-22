@@ -1,22 +1,12 @@
 use crate::util::parse::ParseOps;
 
-
-pub fn parse(input: &str) -> Vec<usize> {
-    input.iter_unsigned().collect()
-}
-
-pub fn part1(input: &[usize]) -> usize {
-    input.iter()
-        .map(|&number| (0..2000).fold(number, |n, _| gen(n)))
-        .sum()
-}
-
-pub fn part2(input: &[usize]) -> usize {
-    // see hash function for explanation of why the size is 130321
+pub fn parse(input: &str) -> (usize, usize) {
+    // 130321 is explained in the hash function
     let mut totals = vec![0; 130321];
     let mut history = vec![usize::MAX; 130321];
+    let mut p1_val = 0;
 
-    input.iter().enumerate().for_each(|(i, &start)| {
+    input.iter_unsigned().collect::<Vec<usize>>().into_iter().enumerate().for_each(|(i, start)| {
         // generate first 4 numbers in sequence
         let [n1, n2, n3, n4] = std::array::from_fn(|i| {
             (0..=i).fold(start, |acc, _| gen(acc))
@@ -31,8 +21,10 @@ pub fn part2(input: &[usize]) -> usize {
             shift_diff(n3, n4),
         ];
 
+        let mut curr = n4;
+
         (4..2000).fold(n4, |prev, _| {
-            let curr = gen(prev);
+            curr = gen(prev);
             
             // rotate differences and add new one
             diffs.rotate_left(1);
@@ -45,22 +37,35 @@ pub fn part2(input: &[usize]) -> usize {
                 totals[key] += curr % 10;
                 history[key] = i;
             }
-            
             curr
         });
+
+        p1_val += curr;
     });
 
-    totals.iter().max().copied().unwrap()
+    (p1_val, totals.iter().max().copied().unwrap())
+
 }
 
-pub fn gen(mut n: usize) -> usize {
-    n ^= n << 6;
-    n &= 0xffffff;
-    n ^= n >> 5;
-    n &= 0xffffff;
-    n ^= n << 11;
-    n &= 0xffffff;
-    n
+pub fn part1(solution: &(usize, usize)) -> usize {
+    solution.0
+}
+
+pub fn part2(solution: &(usize, usize)) -> usize {
+    solution.1
+}
+
+pub fn gen(n: usize) -> usize {
+    // n ^= n << 6;
+    // n &= 0xffffff;
+    // n ^= n >> 5;
+    // n &= 0xffffff;
+    // n ^= n << 11;
+    // n &= 0xffffff;
+    // n
+
+    ((((n ^ (n << 6)) & 0xffffff) ^ (((n ^ (n << 6)) & 0xffffff) >> 5) & 0xffffff) ^ 
+    ((((n ^ (n << 6)) & 0xffffff) ^ (((n ^ (n << 6)) & 0xffffff) >> 5) & 0xffffff) << 11)) & 0xffffff
 }
 
 // there's only a range of -9 to 9 in differences (or 0 to 18 after shifting), so we can create a hash of the 4 numbers by using a multiple of 19 (being first prime number after 18)
