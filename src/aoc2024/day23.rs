@@ -1,4 +1,9 @@
 use crate::util::hash::*;
+use petgraph::graphmap::GraphMap;
+use petgraph::Undirected;
+
+use crate::util::tomita::Tomita;
+// use crate::util::bronkerbosch::BronKerbosch;
 
 type Input<'a> = FastMap<&'a str, FastSet<&'a str>>;
 
@@ -69,3 +74,46 @@ pub fn part2(nodes: &Input<'_>) -> String {
     result.sort_unstable();
     result.join(",")
 }
+
+// Use various graph algorithms to find cliques
+// Direct:         1.2ms
+// Tomita:        11.8ms
+// BronKerbosch: 168.0ms
+pub fn _part2_algos(input: &Input<'_>) -> String {
+    let mut graph = GraphMap::<&str, (), Undirected>::new();
+    
+    // Add all edges (in both directions since it's undirected)
+    for (&from, edges) in input {
+        for &to in edges {
+            graph.add_edge(from, to, ());
+        }
+    }
+    
+    // Find all cliques using Tomita's algorithm
+    let mut clique_alg = Tomita::new(graph);
+    
+    // Find all the cliques using BronKerbosch - SLOWEST ~170ms
+    // let mut clique_alg = BronKerbosch::new(graph);
+
+    clique_alg.compute();
+    
+    // Get all cliques and sort them by size (largest first)
+    let mut cliques = clique_alg.cliques().to_vec();
+    cliques.sort_by_key(|clique| -(clique.len() as i32));
+    
+    // print all cliques with their sizes
+    for (i, clique) in cliques.iter().enumerate() {
+        println!("Clique {}: size={} members={:?}", 
+                i, 
+                clique.len(), 
+                clique.iter().collect::<Vec<_>>());
+    }
+    
+    // Take the largest clique, sort its members, and join with commas
+    let largest = &cliques[0];
+    let mut members: Vec<_> = largest.iter().copied().collect();
+    members.sort_unstable();
+    members.join(",")
+}
+
+
