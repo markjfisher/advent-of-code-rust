@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::Write;
 
 pub fn parse(input: &str) -> Circuit {
     let (known_values, gates) = input.split_once("\n\n").unwrap();
@@ -48,8 +50,11 @@ pub fn part1(input: &Circuit) -> u64 {
     extract_binary_number(&result, 'z')
 }
 
-pub fn part2(_input: &Circuit) -> String {
-    "z00,z01,z02,z05".to_string()
+// initially solved by inspection of the DOT output as svg.
+pub fn part2(input: &Circuit) -> String {
+    let wrong = find_wrong_outputs(input);
+    // input.write_graph("circuit.dot", &wrong).unwrap();
+    wrong.join(",")
 }
 
 #[derive(Debug, Clone)]
@@ -134,4 +139,126 @@ impl Circuit {
 
         result
     }
+
+    fn style_node(node: &str, bad_node: bool) -> String {
+        if node.contains('_') {
+            let parts: Vec<&str> = node.split('_').collect();
+            let op = parts[1];
+            let attrs = match op {
+                "AND" => "shape=invtrapezium,fillcolor=yellow",
+                "OR" => "shape=invtriangle,fillcolor=greenyellow",
+                "XOR" => "shape=invhouse,fillcolor=lightblue,fontcolor=white",
+                _ => unreachable!(),
+            };
+            format!("{}[label={},style=filled,{}]", node, op, attrs)
+        } else if node.starts_with('x') {
+            format!("{}[shape=square,style=filled,fillcolor=deepskyblue]", node)
+        } else if node.starts_with('y') {
+            format!("{}[shape=square,style=filled,fillcolor=dodgerblue]", node)
+        } else if node.starts_with('z') {
+            if bad_node {
+                format!("{}[shape=square,style=filled,fillcolor=red]", node)
+            } else {
+                format!("{}[shape=square,style=filled,fillcolor=purple,fontcolor=white]", node)
+            }
+        } else if bad_node {
+            format!("{}[shape=square,style=filled,fillcolor=red]", node)
+        } else {
+            format!("{}[shape=square,style=filled,fillcolor=lightgrey]", node)
+        }
+    }
+
+    pub fn write_graph(&self, filename: &str, bad_outputs: &[String]) -> std::io::Result<()> {
+        let mut file = File::create(filename)?;
+        writeln!(file, "digraph 24 {{")?;
+
+        // Write all known values and outputs as nodes
+        for key in self.known_values.keys() {
+            writeln!(file, "  {}", Self::style_node(key, bad_outputs.contains(key)))?;
+        }
+        for gate in &self.gates {
+            writeln!(file, "  {}", Self::style_node(&gate.output, bad_outputs.contains(&gate.output)))?;
+        }
+
+        // Write gate connections
+        for gate in &self.gates {
+            let operator = format!("{}_{}_{}", 
+                gate.inputs[0],
+                match gate.operation {
+                    Operation::And => "AND",
+                    Operation::Or => "OR",
+                    Operation::Xor => "XOR",
+                },
+                gate.inputs[1]
+            );
+            
+            writeln!(file, "  {}", Self::style_node(&operator, false))?;
+            writeln!(file, "  {} -> {};", operator, gate.output)?;
+            writeln!(file, "  {} -> {};", gate.inputs[0], operator)?;
+            writeln!(file, "  {} -> {};", gate.inputs[1], operator)?;
+        }
+
+        writeln!(file, "}}")?;
+        Ok(())
+    }
+}
+
+// After inspecting the DOT output, this logic was built up to match the inspections
+pub fn find_wrong_outputs(circuit: &Circuit) -> Vec<String> {
+    let mut wrong = Vec::new();
+    let mut highest_z = "z00".to_string();
+
+    // Find highest z value first
+    for gate in &circuit.gates {
+        if gate.output.starts_with('z') {
+            if gate.output > highest_z {
+                highest_z = gate.output.clone();
+            }
+        }
+    }
+
+    // Apply rules to find wrong outputs
+    for gate in &circuit.gates {
+        // Rule 1: z-output using AND/OR (not XOR) and not the highest z
+        if gate.output.starts_with('z') && gate.output != highest_z {
+            match gate.operation {
+                Operation::And | Operation::Or => {
+                    wrong.push(gate.output.clone());
+                }
+                _ => {}
+            }
+        }
+
+        // Rule 2: XOR chains where neither inputs nor output start with x/y/z
+        if matches!(gate.operation, Operation::Xor) 
+           && !gate.output.starts_with(['x', 'y', 'z'])
+           && !gate.inputs.iter().any(|i| i.starts_with(['x', 'y', 'z'])) {
+            wrong.push(gate.output.clone());
+        }
+
+        // Rule 3: AND chains (except x00) feeding into non-OR operations
+        if matches!(gate.operation, Operation::And) 
+           && !gate.inputs.contains(&"x00".to_string()) {
+            for other_gate in &circuit.gates {
+                if other_gate.inputs.iter().any(|i| i == &gate.output)
+                   && !matches!(other_gate.operation, Operation::Or) {
+                    wrong.push(gate.output.clone());
+                }
+            }
+        }
+
+        // Rule 4: XOR outputs feeding into OR operations
+        if matches!(gate.operation, Operation::Xor) {
+            for other_gate in &circuit.gates {
+                if other_gate.inputs.iter().any(|i| i == &gate.output)
+                   && matches!(other_gate.operation, Operation::Or) {
+                    wrong.push(gate.output.clone());
+                }
+            }
+        }
+    }
+
+    wrong.sort();
+    wrong.dedup();
+    wrong
 }
