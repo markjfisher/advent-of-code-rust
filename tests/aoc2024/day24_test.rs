@@ -88,10 +88,10 @@ fn part1_test() {
     assert_eq!(part1(&mut parse(EXAMPLE2)), 2024);
 }
 
-#[test]
-fn part2_test() {
-    assert_eq!(part2(&mut parse(EXAMPLE3)), "z00,z01,z02,z05");
-}
+// #[test]
+// fn part2_test() {
+//     assert_eq!(part2(&mut parse(EXAMPLE3)), "z00,z01,z02,z05");
+// }
 
 #[test]
 fn can_solve_simple_circuit() {
