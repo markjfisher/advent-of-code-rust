@@ -1,15 +1,48 @@
 use aoc::aoc2024::day25::*;
 
-const EXAMPLE: &str = "";
+const EXAMPLE: &str = "\
+#####
+.####
+.####
+.####
+.#.#.
+.#...
+.....
+
+#####
+##.##
+.#.##
+...##
+...#.
+...#.
+.....
+
+.....
+#....
+#....
+#...#
+#.#.#
+#.###
+#####
+
+.....
+.....
+#.#..
+###..
+###.#
+###.#
+#####
+
+.....
+.....
+.....
+#....
+#.#..
+#.#.#
+#####";
 
 #[test]
 fn part1_test() {
     let input = parse(EXAMPLE);
-    assert_eq!(part1(&input), 123);
-}
-
-#[test]
-fn part2_test() {
-    let input = parse(EXAMPLE);
-    assert_eq!(part2(&input), 0);
+    assert_eq!(part1(&input), 3);
 }
