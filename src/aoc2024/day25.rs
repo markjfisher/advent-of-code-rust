@@ -10,9 +10,9 @@ pub fn parse(input: &str) -> u32 {
     for pattern in input.split("\n\n") {
         let grid = Grid::parse(pattern);
         if is_lock(&grid) {
-            locks.push(lock_hash(&grid));
+            locks.push(lock_lengths(&grid));
         } else {
-            keys.push(key_hash(&grid));
+            keys.push(key_lengths(&grid));
         }
     }
 
@@ -25,7 +25,7 @@ pub fn parse(input: &str) -> u32 {
     }).sum()
 }
 
-fn key_hash(pattern: &Grid<u8>) -> Vec<u32> {
+fn key_lengths(pattern: &Grid<u8>) -> Vec<u32> {
     (0..5).map(|x| {
         let mut position = Point::new(x, 5);
         while pattern[position] == b'#' {
@@ -35,7 +35,7 @@ fn key_hash(pattern: &Grid<u8>) -> Vec<u32> {
     }).collect()
 }
 
-fn lock_hash(pattern: &Grid<u8>) -> Vec<u32> {
+fn lock_lengths(pattern: &Grid<u8>) -> Vec<u32> {
     (0..5).map(|x| {
         let mut position = Point::new(x, 1);
         while pattern[position] == b'#' {
