@@ -36,6 +36,7 @@ fn do_aoc(year: Option<u32>, day: Option<u32>) {
         // .chain(aoc2021())
         // .chain(aoc2023())
         .chain(aoc2024())
+        .chain(aoc2025())
         .filter(|solution| year.is_none_or(|y: u32| y == solution.year))
         .filter(|solution| day.is_none_or(|d: u32| d == solution.day));
 
@@ -114,6 +115,10 @@ run!(aoc2017
 run!(aoc2024
     day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12, day13,
     day14, day15, day16, day17, day18, day19, day20, day21, day22, day23, day24, day25
+);
+
+run!(aoc2025
+    day01
 );
 
 struct Visualisation {

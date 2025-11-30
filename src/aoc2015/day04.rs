@@ -1,5 +1,5 @@
-use crypto::digest::Digest;
-use crypto::md5::Md5;
+use md5::{Md5, Digest};
+use itoa::Buffer;
 
 pub fn parse(input: &str) -> &str {
     input.trim()
@@ -23,19 +23,26 @@ fn part2_solve(secret: &str, start_at: u32) -> u32 {
     solver(secret, start_at, |hash| hash[0..3] == [0; 3])
 }
 
-fn solver(secret: &str, start_at: u32, is_valid: impl Fn(&[u8; 16]) -> bool) -> u32 {
-    let mut hash = [0; 16];
+fn solver(secret: &str, start_at: u32, is_valid: impl Fn(&[u8]) -> bool) -> u32 {
+    let secret_bytes = secret.as_bytes();
+    let mut buf = Buffer::new(); // stack-allocated, reusable
 
-    let mut hasher = Md5::new();
-    hasher.input_str(secret);
+    for i in start_at..=u32::MAX {
+        let mut hasher = Md5::new();
 
-    // simple brute force search
-    (start_at..=u32::MAX)
-        .find(|i| {
-            let mut hasher = hasher;
-            hasher.input_str(&i.to_string());
-            hasher.result(&mut hash);
-            is_valid(&hash)
-        }).unwrap()
+        // feed "secret"
+        hasher.update(secret_bytes);
 
+        // convert `i` to decimal *without* heap allocation
+        let dec: &str = buf.format(i);
+        hasher.update(dec.as_bytes());
+
+        let hash = hasher.finalize();
+
+        if is_valid(hash.as_slice()) {
+            return i;
+        }
+    }
+
+    unreachable!("Search should always find a solution before u32::MAX");
 }
