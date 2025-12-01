@@ -13,22 +13,30 @@ pub fn part2(input: &(Vec<u32>, Vec<u32>)) -> u32 {
 pub fn do_rotations(input: &str, initial: i32) -> (Vec<u32>, Vec<u32>) {
     let mut current = initial;
     input.lines().map(|line| {
-        let mut clicks: u32 = 0;
-        let mut new_current = current;
         let dir = line.as_bytes()[0] as char;
         let count = line[1..].parse::<i32>().unwrap();
-        if dir == 'L' {
-            new_current = new_current - count;
+        let delta = if dir == 'L' { -count } else { count };
+        let raw = current + delta;
+        
+        // Normalize position to 0-99 range
+        let new_current = ((raw % 100) + 100) % 100;
+        
+        // Count clicks: number of times we cross 0
+        let clicks = if raw < 0 {
+            // Wrapping from negative: count wraps, plus one if we end at 0
+            let wraps = (-raw + 99) / 100;
+            let extra = if new_current == 0 { 1 } else { 0 };
+            let adjust = if current == 0 && dir == 'L' { 1 } else { 0 };
+            (wraps + extra).saturating_sub(adjust)
+        } else if raw == 0 && dir == 'L' {
+            // Going left and ending exactly at 0: crossed 0 once
+            1
         } else {
-            new_current = new_current + count;
-        }
-        while new_current < 0 { new_current += 100; clicks += 1; }
-        // after being on the left, we may end up on 0, which has to be counted as a click
-        if new_current == 0 { clicks += 1; }
-        // compensate for starting at 0 and going Left, first click should be ignored
-        if current == 0 && dir == 'L' { clicks -= 1; }
-        while new_current >= 100 { new_current -= 100; clicks += 1; }
+            // Wrapping from positive: count how many times we cross 100
+            raw / 100
+        } as u32;
+        
         current = new_current;
-
-        (current as u32, clicks as u32)
-    }).collect()}
+        (current as u32, clicks)
+    }).collect()
+}
