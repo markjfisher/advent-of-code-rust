@@ -35,16 +35,18 @@ fn test_parsing_data() {
 #[test]
 fn test_parsing_data2() {
     // Test individual moves - checking crossing counts
-    assert_eq!(do_rotations("R1", 50), (0, 0));  // No zero, no crossing
+    assert_eq!(do_rotations("R1", 50), (0, 0));   // No zero, no crossing
     assert_eq!(do_rotations("R50", 50), (1, 1));  // Ends at 0, crossed once
     assert_eq!(do_rotations("R51", 50), (0, 1));  // No zero, crossed once
     assert_eq!(do_rotations("R150", 50), (1, 2)); // Ends at 0, crossed twice
     assert_eq!(do_rotations("R151", 50), (0, 2)); // No zero, crossed twice
+    assert_eq!(do_rotations("R100", 0), (1, 1));  // Ends at 0, crossed once
 
     assert_eq!(do_rotations("L1", 50), (0, 0));   // No zero, no crossing
     assert_eq!(do_rotations("L50", 50), (1, 1));  // Ends at 0, crossed once
     assert_eq!(do_rotations("L51", 50), (0, 1));  // No zero, crossed once
     assert_eq!(do_rotations("L150", 50), (1, 2)); // Ends at 0, crossed twice
     assert_eq!(do_rotations("L151", 50), (0, 2)); // No zero, crossed twice
+    assert_eq!(do_rotations("L100", 0), (1, 1));  // Ends at 0, clicked 1 times
     assert_eq!(do_rotations("L766", 0), (0, 7));  // No zero, crossed 7 times
 }
