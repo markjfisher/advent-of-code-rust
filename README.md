@@ -11,11 +11,13 @@ Then add references to the new files in `src/lib.rs`, `src/main.rs`, and `tests/
 
 ## Running Solutions
 
-I am using nightly features, so you need to run `cargo build` with the nightly toolchain:
+I am using nightly features, so you need to run `cargo build` with the nightly toolchain.
 
-```bash
-cargo build --toolchain nightly
-```
+This is now done by having the file rust-toolchain.toml in the root directory, which specifies the nightly toolchain.
+
+```toml
+[toolchain]
+channel = "nightly"```
 
 The file `.vscode/settings.json` is used to tell the rust-analyzer to use the nightly toolchain for the IDE.
 And the entry in lib.rs adds the line:
