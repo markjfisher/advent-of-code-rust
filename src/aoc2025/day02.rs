@@ -1,7 +1,7 @@
 pub fn parse(input: &str) -> (u64, u64) {
-    fn count_and_sum_pairs_in_range(lower: u64, upper: u64) -> (u64, u64) {
+    fn sum_pairs_in_range(lower: u64, upper: u64) -> u64 {
         if lower > upper {
-            return (0, 0);
+            return 0;
         }
 
         fn digits(mut n: u64) -> u32 {
@@ -16,7 +16,6 @@ pub fn parse(input: &str) -> (u64, u64) {
             d
         }
 
-        let mut total_count = 0u64;
         let mut total_sum = 0u64;
 
         // doubled number has 2*d digits, so d is at most digits(upper)/2
@@ -49,31 +48,72 @@ pub fn parse(input: &str) -> (u64, u64) {
 
                 let sum_pairs = factor * sum_k;
 
-                total_count += count;
                 total_sum += sum_pairs;
             }
         }
 
-        (total_count, total_sum)
+        total_sum
     }
 
-    input
-        .split(',')
-        .map(|s| {
-            let mut parts = s.split('-');
-            let lower = parts.next().unwrap().parse::<u64>().unwrap();
-            let upper = parts.next().unwrap().parse::<u64>().unwrap();
+    fn is_repeated_block(n: u64) -> bool {
+        let s = n.to_string();
+        let len = s.len();
 
-            count_and_sum_pairs_in_range(lower, upper)
-        })
-        .fold((0u64, 0u64), |(acc_c, acc_s), (c, s)| (acc_c + c, acc_s + s))
+        for block_len in 1..=len / 2 {
+            if len % block_len != 0 {
+                continue;
+            }
+
+            let repeats = len / block_len;
+            if repeats < 2 {
+                continue;
+            }
+
+            let pattern = &s[..block_len];
+            let candidate = pattern.repeat(repeats);
+
+            if candidate == s {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    fn sum_repeated_in_range(lower: u64, upper: u64) -> u64 {
+        if lower > upper {
+            return 0;
+        }
+
+        let mut sum = 0u64;
+        for n in lower..=upper {
+            if is_repeated_block(n) {
+                sum += n;
+            }
+        }
+        sum
+    }
+
+    let (mut p1, mut p2) = (0u64, 0u64);
+
+    for s in input.split(',') {
+        let mut parts = s.split('-');
+        let lower = parts.next().unwrap().parse::<u64>().unwrap();
+        let upper = parts.next().unwrap().parse::<u64>().unwrap();
+
+        p1 += sum_pairs_in_range(lower, upper);
+        p2 += sum_repeated_in_range(lower, upper);
+    }
+
+    (p1, p2)
 }
+
 
 
 pub fn part1(input: &(u64, u64)) -> u64 {
-    input.1
+    input.0
 }
 
-pub fn part2(_input: &(u64, u64)) -> u64 {
-    0
+pub fn part2(input: &(u64, u64)) -> u64 {
+    input.1
 }

@@ -11,12 +11,12 @@ fn part1_test() {
 #[test]
 fn part2_test() {
     let input = parse(EXAMPLE);
-    assert_eq!(part2(&input), 0);
+    assert_eq!(part2(&input), 4174379265);
 }
 
 #[test]
 fn test_parsing_data() {
-    assert_eq!(parse("1-31"), (2, 33)); // 11+22
-    assert_eq!(parse("95-115"), (1, 99)); // just 99
-    assert_eq!(parse("8000-20000"), (20, 180790)); // 8080+8181+..+9999
+    assert_eq!(parse("1-31"), (33, 0)); // 11+22
+    assert_eq!(parse("95-115"), (99, 0)); // just 99
+    assert_eq!(parse("8000-20000"), (180790, 0)); // 8080+8181+..+9999
 }
