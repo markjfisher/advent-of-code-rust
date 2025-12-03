@@ -118,7 +118,7 @@ run!(aoc2024
 );
 
 run!(aoc2025
-    day01, day02
+    day01, day02, day03
 );
 
 struct Visualisation {
