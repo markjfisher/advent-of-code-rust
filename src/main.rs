@@ -131,6 +131,7 @@ struct Visualisation {
 fn do_vis(year: Option<u32>, day: Option<u32>) {
     let visualisations = empty()
         .chain(vis2024())
+        .chain(vis2025())
         .filter(|visualisation| year.is_none_or(|y: u32| y == visualisation.year))
         .filter(|visualisation| day.is_none_or(|d: u32| d == visualisation.day));
 
@@ -169,4 +170,8 @@ macro_rules! viz {
 
 viz!(vis2024
     day16
+);
+
+viz!(vis2025
+    day04
 );

@@ -1,4 +1,5 @@
-use crate::util::{grid::Grid, point::{Point, DIAGONAL}};
+use crate::util::{grid::Grid, point::{Point, DIAGONAL}, hash::*};
+use once_cell::sync::Lazy;
 
 pub fn parse(input: &str) -> Grid<u8> {
     Grid::parse(input)
@@ -34,6 +35,10 @@ pub fn part2(input: &Grid<u8>) -> u32 {
         }
     }
 
+    // println!("queue size: {}", queue.len());
+    // println!("initial neighbour_counts:\n{}", neighbour_counts.to_grid_string_with_map(Some(&DIGIT_MAP)));
+    // println!("initial grid:\n{}\n", grid.to_grid_string());
+
     // 2. Process frontier
     while let Some(p) = queue.pop_front() {
         // Might have been removed already as a consequence of a neighbour
@@ -64,6 +69,10 @@ pub fn part2(input: &Grid<u8>) -> u32 {
                 }
             }
         }
+
+        // println!("queue size: {}", queue.len());
+        // println!("grid:\n{}\n", grid.to_grid_string());
+    
     }
 
     removed_count
@@ -120,3 +129,16 @@ pub fn remove(input: &mut Grid<u8>, removable: &[Point]) {
         input[p] = b'.';
     }
 }
+
+pub static DIGIT_MAP: Lazy<FastMap<u8, &'static str>> = Lazy::new(|| {
+    let mut m = FastMap::new();
+
+    for i in 1u8..=8 {
+        let s: &'static mut str = Box::leak(i.to_string().into_boxed_str());
+        let s: &'static str = s; // coerce &mut str -> &str
+        m.insert(i, s);
+    }
+
+    m.insert(0, "·");
+    m
+});

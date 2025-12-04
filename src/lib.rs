@@ -49,3 +49,7 @@ library!(aoc2025 "AOC 2025"
 library!(vis2024 "Visualisations for AOC 2024"
     day16
 );
+
+library!(vis2025 "Visualisations for AOC 2025"
+    day04
+);
