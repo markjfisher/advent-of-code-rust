@@ -43,7 +43,7 @@ library!(aoc2024 "AOC 2024"
 );
 
 library!(aoc2025 "AOC 2025"
-    day01, day02, day03
+    day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12
 );
 
 library!(vis2024 "Visualisations for AOC 2024"
