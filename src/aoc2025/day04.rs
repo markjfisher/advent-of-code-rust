@@ -29,19 +29,27 @@ pub fn part2(input: &Grid<u8>) -> u32 {
     removed_count as u32
 }
 
+fn has_at_least_4_neighbours(grid: &Grid<u8>, p: Point) -> bool {
+    let mut count = 0;
+
+    for &direction in DIAGONAL.iter() {
+        let x = p + direction;
+        if grid.contains(x) && grid[x] == b'@' {
+            count += 1;
+            if count == 4 {
+                return true; // early exit
+            }
+        }
+    }
+
+    false
+}
+
 pub fn find_removable(input: &Grid<u8>) -> Vec<Point> {
-    input.points()
+    input
+        .points()
         .filter(|&p| input[p] == b'@')
-        .filter(|&p| DIAGONAL.iter()
-            .filter(|&&direction| {
-                let x: Point = p + direction;
-                if input.contains(x) {
-                    input[x] == b'@'
-                } else {
-                    false
-                }
-            })
-            .count() < 4)
+        .filter(|&p| !has_at_least_4_neighbours(input, p))
         .collect()
 }
 
