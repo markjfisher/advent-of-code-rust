@@ -1,21 +1,71 @@
-use std::collections::HashMap;
+use std::cmp::Reverse;
 
 #[derive(Debug)]
-struct DSU {
-    parent: Vec<usize>,
-    size: Vec<u64>,
+pub struct DSU {
+    pub parent: Vec<usize>,
+    pub size: Vec<usize>,
 }
 
 // Disjoint Set Union (DSU) with path compression and union by size
+
+// Here's an example of how DSU works:
+// Initial DSU:
+//   parent = [0, 1, 2, 3, 4]
+//   size   = [1, 1, 1, 1, 1]
+// Each node is its own root.
+// Now let's do some unions. These could be any order, but in the puzzle they are by "nearest coordinate pairs".
+// For our example we'll make up the pairs as (0,3), (1, 4), (3, 4), (2, 4).
+//
+// union(0, 3)
+//   find(0) = 0
+//   find(3) = 3
+// Both have size 1, so we'll just attach 3 to 0.
+//   parent[3] = 0
+//   size[0] = 2
+//   parent = [0, 1, 2, 0, 4]
+//   size   = [2, 1, 1, 1, 1]
+// Note how entry 3 is now 0, which is its parent. Its size is no longer important.
+//
+// union(1, 4)
+//   find(1) = 1
+//   find(4) = 4
+// Both have size 1, so we'll just attach 4 to 1.
+//   parent[4] = 1
+//   size[1] = 2
+//   parent = [0, 1, 2, 0, 1]
+//   size   = [2, 2, 1, 1, 1]
+//
+// union(3, 4)
+//   find(3) = 0 -> root = 0, size[0] = 2
+//   find(4) = 1 -> root = 1, size[1] = 2
+//   same size, so we'll attach 1 to 0.
+//   parent[1] = 0
+//   size[0] = 4
+//   parent = [0, 0, 2, 0, 1] - uncompressed until find is called
+//   size   = [4, x, 1, x, x] - don't care about the x entries, as they are not roots
+//
+// union(2, 4)
+//   find(2) = 2,             size[2] = 1
+//   find(4) = 0 -> root = 0, size[0] = 4
+//   so we'll attach 2 to 0 as node 0 has larger size
+//   parent[2] = 0
+//   size[0] = 5
+//   parent = [0, 0, 0, 0, 0]
+//   size   = [5, x, x, x, x]
+// 
+// and this completes the unions, as node 0 has size of number of entries
+// For part 2 solution, the 2 items being unioned in the end were (2, 4), so look up those items coordinates as needed
+
 impl DSU {
-    fn new(n: usize) -> Self {
+    pub fn new(n: usize) -> Self {
         Self {
             parent: (0..n).collect(),
             size: vec![1; n],
         }
     }
 
-    fn find(&mut self, x: usize) -> usize {
+    // do path compression during find, so we change the entry's parent as we look for it
+    pub fn find(&mut self, x: usize) -> usize {
         if self.parent[x] != x {
             let root = self.find(self.parent[x]);
             self.parent[x] = root;
@@ -23,7 +73,7 @@ impl DSU {
         self.parent[x]
     }
 
-    fn union(&mut self, a: usize, b: usize) {
+    pub fn union(&mut self, a: usize, b: usize) {
         let mut ra = self.find(a);
         let mut rb = self.find(b);
         if ra == rb {
@@ -40,8 +90,7 @@ impl DSU {
     }
 }
 
-// Parsed representation: just the list of junction box coordinates.
-pub fn parse(input: &str) -> Vec<(i64, i64, i64)> {
+pub fn parse_coords(input: &str) -> Vec<(i64, i64, i64)> {
     input
         .lines()
         .filter(|l| !l.is_empty())
@@ -55,12 +104,29 @@ pub fn parse(input: &str) -> Vec<(i64, i64, i64)> {
         .collect()
 }
 
-/// Core solver, parameterised by the number of shortest pairs to use.
-pub fn solve(coordinates: &[(i64, i64, i64)], limit: usize) -> u64 {
-    let n = coordinates.len();
-    let mut pairs: Vec<(usize, usize, u64)> = Vec::new();
+fn top3_product(dsu: &DSU) -> u64 {
+    let n = dsu.parent.len();
+    let mut sizes: Vec<usize> = Vec::new();
 
-    // 1) Build all unique pairs with squared distance
+    // Only roots (parent[i] == i) have valid size[i]
+    for i in 0..n {
+        if dsu.parent[i] == i {
+            sizes.push(dsu.size[i]);
+        }
+    }
+
+    // Sort descending and take top 3
+    sizes.sort_unstable_by_key(|&s| Reverse(s));
+    sizes.iter().take(3).product::<usize>() as u64
+}
+
+pub fn solve_both(coordinates: &[(i64, i64, i64)], part1_limit: usize) -> (u64, u64) {
+    let n = coordinates.len();
+
+    // build all unique pairs with squared distance
+    let mut pairs: Vec<(usize, usize, u64)> = Vec::new();
+    pairs.reserve(n * (n - 1) / 2);
+
     for i in 0..n {
         for j in i + 1..n {
             let (x1, y1, z1) = coordinates[i];
@@ -75,38 +141,53 @@ pub fn solve(coordinates: &[(i64, i64, i64)], limit: usize) -> u64 {
         }
     }
 
-    // 2) Sort by squared distance ascending
+    // sort by squared distance ascending
     pairs.sort_unstable_by_key(|&(_, _, d)| d);
 
-    // 3) DSU: connect the first `limit` pairs in order.
+    // walk pairs once, tracking answers for both parts
     let mut dsu = DSU::new(n);
-    let mut used_pairs = 0;
 
-    for &(i, j, _) in pairs.iter() {
-        if used_pairs >= limit {
-            break;
+    let mut part1_answer: Option<u64> = None;
+    let mut part2_answer: Option<u64> = None;
+
+    for (idx, &(i, j, _)) in pairs.iter().enumerate() {
+        // count how many pairs we've gone over for p1
+        let pairs_seen = idx + 1;
+
+        // do union for p2. if already in same circuit, this does nothing
+        dsu.union(i, j);
+
+        // if we've just hit the LIMIT'th pair, snapshot the DSU state for part 1
+        if pairs_seen == part1_limit && part1_answer.is_none() {
+            part1_answer = Some(top3_product(&dsu));
         }
-        used_pairs += 1;     // this pair *always* counts toward the limit
-        dsu.union(i, j);     // might or might not change circuits
-    }
 
-    // 4) Count circuit sizes (group by DSU root)
-    let mut circuit_sizes: HashMap<usize, u64> = HashMap::new();
-    for i in 0..n {
+        // after this union, check if everything is in a single circuit
         let root = dsu.find(i);
-        *circuit_sizes.entry(root).or_insert(0) += 1;
+        if dsu.size[root] as usize == n && part2_answer.is_none() {
+            let (x1, _, _) = coordinates[i];
+            let (x2, _, _) = coordinates[j];
+            part2_answer = Some((x1 as u64) * (x2 as u64));
+            break; // fully connected, no need to process more pairs
+        }
     }
 
-    // 5) Take the 3 largest and multiply
-    let mut sizes: Vec<u64> = circuit_sizes.into_values().collect();
-    sizes.sort_unstable_by(|a, b| b.cmp(a)); // descending
-    sizes.iter().take(3).product()
+    // fun with options! get the values out and assert there was one.
+    (
+        part1_answer.expect("Part 1 answer not found"),
+        part2_answer.expect("Part 2 answer not found"),
+    )
 }
 
-pub fn part1(coords: &Vec<(i64, i64, i64)>) -> u64 {
-    solve(coords, 1000)
+pub fn parse(input: &str) -> (u64, u64) {
+    let coords = parse_coords(input);
+    solve_both(&coords, 1000)
 }
 
-pub fn part2(coords: &Vec<(i64, i64, i64)>) -> u64 {
-    solve(coords, 1000)
+pub fn part1(result: &(u64, u64)) -> u64 {
+    result.0
+}
+
+pub fn part2(result: &(u64, u64)) -> u64 {
+    result.1
 }
