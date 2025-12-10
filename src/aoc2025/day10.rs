@@ -1,90 +1,61 @@
 use pathfinding::prelude::bfs;
+use crate::util::frac::Frac;
 
 #[derive(Debug, Clone)]
 pub struct Machine {
     pub num_lights: u8,
-    pub target: u64,          // bits: 1 = ON, 0 = OFF
+    pub target: u64,            // bits: 1 = ON, 0 = OFF
     pub button_masks: Vec<u64>, // one mask per button
-    pub joltages: Vec<u32>,   // same length as num_lights
+    pub joltages: Vec<u32>,     // same length as num_lights
 }
 
+use regex::Regex;
+
 pub fn parse_machine(line: &str) -> Machine {
-    // Split off the joltages part: "... } {3,5,4,7}"
-    let mut outer_parts = line.split('{');
-    let left = outer_parts
-        .next()
-        .expect("line should contain a '{' for joltages")
-        .trim();
-    let jolts_part = outer_parts
-        .next()
-        .expect("joltages part missing")
-        .trim();
+    let re = Regex::new(
+        r"^\s*\[([.#]+)\]\s*((?:\([\d,]+\)\s*)+)\{([\d,\s]+)\}\s*$"
+    ).unwrap();
 
-    // Strip trailing '}' from joltages and parse numbers
-    let jolts_str = jolts_part
-        .trim_end_matches('}')
-        .trim();
+    let caps = re
+        .captures(line)
+        .unwrap_or_else(|| panic!("Invalid machine line: {line}"));
 
-    let joltages: Vec<u32> = if jolts_str.is_empty() {
-        Vec::new()
-    } else {
-        jolts_str
-            .split(',')
-            .map(|s| s.trim().parse::<u32>().expect("invalid joltage"))
-            .collect()
-    };
-
-    // Extract lights pattern from [...] on the left side
-    let start_bracket = left.find('[').expect("missing '['");
-    let end_bracket = left[start_bracket + 1..]
-        .find(']')
-        .expect("missing ']'")
-        + start_bracket
-        + 1;
-
-    let lights_str = &left[start_bracket + 1..end_bracket];
+    let lights_str = caps.get(1).unwrap().as_str();
     let num_lights = lights_str.len() as u8;
 
-    // Build target bitmask: bit i = 1 if lights_str[i] == '#'
     let mut target: u64 = 0;
     for (i, ch) in lights_str.chars().enumerate() {
-        if ch == '#' {
-            target |= 1u64 << i;
-        } else if ch != '.' {
-            panic!("unexpected char in lights pattern: {ch}");
+        match ch {
+            '#' => target |= 1 << i,
+            '.' => {}                // off
+            _   => panic!("Unexpected char '{ch}' in lights pattern"),
         }
     }
 
-    // Everything after the ']' are the button specs: "(3) (1,3) ..."
-    let buttons_part = &left[end_bracket + 1..];
+    let buttons_block = caps.get(2).unwrap().as_str();
+    let b_re = Regex::new(r"\(([\d,]+)\)").unwrap();
 
     let mut button_masks = Vec::new();
+    for bcap in b_re.captures_iter(buttons_block) {
+        let inner = bcap.get(1).unwrap().as_str();
+        let mut mask = 0u64;
 
-    for token in buttons_part.split_whitespace() {
-        if !token.starts_with('(') {
-            continue;
-        }
-        // Remove surrounding parentheses
-        let inner = token
-            .trim_start_matches('(')
-            .trim_end_matches(')');
-
-        if inner.is_empty() {
-            continue;
-        }
-
-        let mut mask: u64 = 0;
-        for idx_str in inner.split(',') {
-            let idx: usize = idx_str.trim().parse().expect("invalid index");
+        for num in inner.split(',') {
+            let idx: usize = num.parse().unwrap();
             mask |= 1u64 << idx;
         }
         button_masks.push(mask);
     }
 
-    // Sanity check: joltages (if present) should match number of lights
-    if !joltages.is_empty() && joltages.len() != num_lights as usize {
+    let jolts_str = caps.get(3).unwrap().as_str();
+    let joltages: Vec<u32> = jolts_str
+        .split(',')
+        .map(|s| s.trim().parse::<u32>().unwrap())
+        .collect();
+
+    if joltages.len() != num_lights as usize {
         panic!(
-            "joltages length {} does not match number of lights {}",
+            "Joltage count {} does not match number of lights {}",
             joltages.len(),
             num_lights
         );
@@ -111,6 +82,8 @@ pub fn parse(input: &str) -> (u32, u32) {
     (part1 as u32, part2 as u32)
 }
 
+// use pathfinding::prelude::bfs to search for the shortest path
+// This was quite simple, using XOR as a simple state change on button press was nice
 pub fn min_light_presses(machine: &Machine) -> Option<usize> {
     let start: u64 = 0;
     let goal: u64 = machine.target;
@@ -137,14 +110,10 @@ pub fn min_light_presses(machine: &Machine) -> Option<usize> {
     Some(path.len() - 1)
 }
 
+// Linear algebra solution for part 2, see below for full explanation
 pub fn min_joltage_presses(machine: &Machine) -> Option<i64> {
     let (a_full, target_full) = build_matrix(machine);
     let m = a_full[0].len();
-
-    // Edge case: if target is all zero, no presses needed
-    if target_full.iter().all(|&v| v == 0) {
-        return Some(0);
-    }
 
     let (pivot_rows, pivot_cols) = find_pivots(&a_full);
     let r = pivot_rows.len();
@@ -205,113 +174,106 @@ pub fn part2(input: &(u32, u32)) -> u32 {
 }
 
 
-// --------------------------------------------------------------------
-// maths
+// -----------------------------------------------------------------------------
+// Part 2: Minimum Joltage Presses – Summary of the Algorithm
+// -----------------------------------------------------------------------------
+//
+// Each machine gives:
+//   - n lights
+//   - m buttons
+//   - Each button increments some subset of lights by +1
+//   - A target joltage t[i] for each light i
+//
+// The goal is:
+//      Find non-negative integers x[0..m-1] (press counts)
+//      with minimal sum(x) such that:
+//
+//          A * x = t
+//
+// Where A is an n×m matrix:
+//      A[i][j] = 1 if button j affects light i, otherwise 0
+//
+// This is an Integer Linear System with small dimensions
+// and non-negativity constraints.
+//
+// A naive BFS would explode (targets up to hundreds), so we solve it
+// using exact rational linear algebra + a small search over free variables.
+//
+// -----------------------------------------------------------------------------
+// Main idea
+// -----------------------------------------------------------------------------
+//
+// 1) Build A (n×m) and target vector t.
+//
+// 2) Perform Gaussian elimination on A (over exact rationals) to determine:
+//        - pivot columns (basis variables)
+//        - free columns   (variables not constrained by rank)
+//    This gives us the rank r of A.
+//
+// 3) Reorder the system conceptually so it looks like:
+//
+//        B * x_basis  +  A_free * x_free  =  t'
+//
+//    Where B is an r×r full-rank submatrix corresponding to pivot columns,
+//    and x_free are the free variables we can choose.
+//
+// 4) For any choice of non-negative integer values for x_free,
+//    the right-hand side for the pivot equation becomes:
+//
+//        rhs_r = t' − A_free * x_free
+//
+//    If rhs_r has any negative entry, this choice cannot work.
+//
+// 5) Solve the small r×r linear system:
+//
+//        B * x_basis = rhs_r
+//
+//    using exact rational Gauss–Jordan.
+//    We only accept solutions where:
+//        - all x_basis are integers,
+//        - all x_basis >= 0.
+//
+// 6) Combine x_basis and x_free into the full vector x.
+//    Verify A * x == t (safety check).
+//
+// 7) Among all valid integer solutions, take the one with
+//        minimal total presses = sum(x[j]).
+//
+// -----------------------------------------------------------------------------
+// Why this is efficient
+// -----------------------------------------------------------------------------
+//
+// - n and m are tiny (<= 8–12), so Gaussian elimination is trivial.
+// - Most machines have few free variables (often 0 or 1).
+// - Free variables have tight bounds: pressing a button too many times
+//   immediately overshoots a target, so the DFS search is tiny.
+// - All arithmetic is exact (using a small rational type Frac),
+//   so we never lose integer precision.
+//
+// This method is effectively a specialised Integer Linear Programming solver,
+// but tailored for 0/1 matrices and small problem sizes.
+// It is fast for all AoC inputs and does not rely on floating point or
+// external solvers.
+//
+// -----------------------------------------------------------------------------
 
 fn build_matrix(machine: &Machine) -> (Vec<Vec<i64>>, Vec<i64>) {
     let n = machine.num_lights as usize;
     let m = machine.button_masks.len();
 
-    let mut a = vec![vec![0i64; m]; n];
+    let mut a_matrix = vec![vec![0i64; m]; n];
 
     for (j, &mask) in machine.button_masks.iter().enumerate() {
         for i in 0..n {
             if (mask >> i) & 1 == 1 {
-                a[i][j] = 1;
+                a_matrix[i][j] = 1;
             }
         }
     }
 
     let t: Vec<i64> = machine.joltages.iter().map(|&v| v as i64).collect();
 
-    (a, t)
-}
-
-#[derive(Clone, Copy, Debug)]
-struct Frac {
-    num: i64,
-    den: i64,
-}
-
-impl Frac {
-    fn new(num: i64, den: i64) -> Self {
-        assert!(den != 0);
-        if num == 0 {
-            return Frac { num: 0, den: 1 };
-        }
-        let mut num = num;
-        let mut den = den;
-        if den < 0 {
-            num = -num;
-            den = -den;
-        }
-        let g = gcd(num.abs(), den);
-        Frac {
-            num: num / g,
-            den: den / g,
-        }
-    }
-
-    fn from_i64(n: i64) -> Self {
-        Frac { num: n, den: 1 }
-    }
-
-    fn zero() -> Self {
-        Frac { num: 0, den: 1 }
-    }
-
-    fn is_zero(&self) -> bool {
-        self.num == 0
-    }
-
-    fn is_integer(&self) -> bool {
-        self.den == 1
-    }
-
-    fn to_i64(&self) -> i64 {
-        debug_assert!(self.is_integer());
-        self.num
-    }
-}
-
-fn gcd(mut a: i64, mut b: i64) -> i64 {
-    while b != 0 {
-        let r = a % b;
-        a = b;
-        b = r;
-    }
-    a.abs()
-}
-
-use std::ops::{Add, Sub, Mul, Div};
-
-impl Add for Frac {
-    type Output = Self;
-    fn add(self, other: Self) -> Self {
-        Frac::new(self.num * other.den + other.num * self.den, self.den * other.den)
-    }
-}
-
-impl Sub for Frac {
-    type Output = Self;
-    fn sub(self, other: Self) -> Self {
-        Frac::new(self.num * other.den - other.num * self.den, self.den * other.den)
-    }
-}
-
-impl Mul for Frac {
-    type Output = Self;
-    fn mul(self, other: Self) -> Self {
-        Frac::new(self.num * other.num, self.den * other.den)
-    }
-}
-
-impl Div for Frac {
-    type Output = Self;
-    fn div(self, other: Self) -> Self {
-        assert!(!other.is_zero());
-        Frac::new(self.num * other.den, self.den * other.num)
-    }
+    (a_matrix, t)
 }
 
 fn solve_square_system(b_matrix: &Vec<Vec<i64>>, b: &Vec<i64>) -> Option<Vec<i64>> {

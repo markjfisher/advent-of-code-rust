@@ -63,25 +63,27 @@ fn test_min_joltage_presses_n_minus_1() {
 
 #[test]
 fn test_min_joltage_presses_bad_case_1() {
+    // this caused issues in the pivot table
     let machine = parse_machine("[#....] (0,2) (0,1,4) (0) (0,4) (0,3,4) (0,1,2,3) {53,16,16,24,27}");
     let min_presses = min_joltage_presses(&machine);
     assert_eq!(min_presses, Some(53));
 }
 
-
-#[test]
-fn test_min_joltage_presses_all_real() {
-    let input = include_str!("../../input/aoc2025/day10.txt");
+// Takes a while to run as it does each one in turn. was used to find cases that didn't work
+// with the linear algebra solution.
+// #[test]
+// fn test_min_joltage_presses_all_real() {
+//     let input = include_str!("../../input/aoc2025/day10.txt");
     
-    let machines: Vec<Machine> = input
-        .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty())
-        .map(parse_machine)
-        .collect();
-    for machine in machines.iter() {
-        println!("Machine: {:?}", machine);
-        let min_presses = min_joltage_presses(&machine);
-        println!("{:?}", min_presses);
-    }
-}
+//     let machines: Vec<Machine> = input
+//         .lines()
+//         .map(str::trim)
+//         .filter(|line| !line.is_empty())
+//         .map(parse_machine)
+//         .collect();
+//     for machine in machines.iter() {
+//         println!("Machine: {:?}", machine);
+//         let min_presses = min_joltage_presses(&machine);
+//         println!("{:?}", min_presses);
+//     }
+// }
