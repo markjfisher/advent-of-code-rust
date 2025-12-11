@@ -17,33 +17,7 @@ pub fn parse(input: &str) -> FastMap<&str, Vec<&str>> {
     graph
 }
 
-pub fn dfs_part1<'a>(
-    node: &'a str,
-    target: &str,
-    graph: &'a FastMap<&'a str, Vec<&'a str>>,
-    memo: &mut FastMap<&'a str, u64>,
-) -> u64 {
-    if let Some(&v) = memo.get(node) {
-        return v;
-    }
-
-    if node == target {
-        memo.insert(node, 1);
-        return 1;
-    }
-
-    let mut total = 0;
-    if let Some(neighbours) = graph.get(node) {
-        for &next in neighbours {
-            total += dfs_part1(next, target, graph, memo);
-        }
-    }
-
-    memo.insert(node, total);
-    total
-}
-
-pub fn dfs_part2<'a>(
+pub fn dfs<'a>(
     node: &'a str,
     target: &str,
     mask: u8,
@@ -76,7 +50,7 @@ pub fn dfs_part2<'a>(
     let mut total = 0;
     if let Some(neighbours) = graph.get(node) {
         for &next in neighbours {
-            total += dfs_part2(next, target, new_mask, graph, memo, visit1, visit2);
+            total += dfs(next, target, new_mask, graph, memo, visit1, visit2);
         }
     }
 
@@ -88,10 +62,10 @@ pub fn dfs_part2<'a>(
 
 pub fn part1(input: &FastMap<&str, Vec<&str>>) -> u64 {
     let mut memo_p1 = FastMap::new();
-    dfs_part1("you", "out", input, &mut memo_p1)
+    dfs("you", "out", 3, input, &mut memo_p1, "xxx", "xxx")
 }
 
 pub fn part2(input: &FastMap<&str, Vec<&str>>) -> u64 {
     let mut memo_p2 = FastMap::new();
-    dfs_part2("svr", "out", 0, input, &mut memo_p2, "fft", "dac")
+    dfs("svr", "out", 0, input, &mut memo_p2, "fft", "dac")
 }
