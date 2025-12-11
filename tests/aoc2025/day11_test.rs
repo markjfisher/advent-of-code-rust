@@ -39,3 +39,10 @@ fn part2_test() {
     assert_eq!(part2(&input), 2);
 }
 
+// #[test]
+fn _generate_graphviz() {
+    let graph = parse(include_str!("../../input/aoc2025/day11.txt"));
+    let dot = to_graphviz(&graph, "you", "svr", "out", "fft", "dac");
+    std::fs::write("/tmp/graph.dot", dot).expect("failed to write graphviz file");
+}
+
