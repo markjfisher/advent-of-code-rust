@@ -22,7 +22,7 @@ macro_rules! library {
 }
 
 library!(util "Utility modules to handle common recurring Advent of Code patterns."
-    ansi, frac, grid, hash, heap, integer, iter, md5, parse, point, thread, bronkerbosch, tomita
+    ansi, bitset, bronkerbosch, frac, grid, hash, heap, integer, iter, math, md5, parse, point, slice, thread, tomita
 );
 
 library!(aoc2015 "AOC 2015"

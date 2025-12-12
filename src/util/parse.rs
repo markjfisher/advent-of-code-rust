@@ -8,8 +8,8 @@
 //! ```
 //!
 //! This module provides two [`&str`] extension methods [`iter_signed`] and [`iter_unsigned`]. The
-//! reason for the separate methods is that some Advent of Code inputs contains the `-` character
-//! as a delimeter and this would cause numbers to be incorrectly parsed as negative.
+//! reason for the separate methods is that some Advent of Code inputs contain the `-` character
+//! as a delimiter and this would cause numbers to be incorrectly parsed as negative.
 //!
 //! [`iter_unsigned`]: ParseOps::iter_unsigned
 //! [`iter_signed`]: ParseOps::iter_signed
@@ -45,38 +45,36 @@ pub trait ParseOps {
     fn iter_signed<T: Signed<T>>(&self) -> ParseSigned<'_, T>;
 }
 
-impl ParseOps for &str {
+impl<S: AsRef<str>> ParseOps for S {
     fn unsigned<T: Unsigned<T>>(&self) -> T {
-        match try_unsigned(&mut self.bytes()) {
-            Some(t) => t,
-            None => panic!("Unable to parse \"{self}\""),
-        }
+        let str = self.as_ref();
+        try_unsigned(&mut str.bytes()).unwrap_or_else(|| panic!("Unable to parse \"{str}\""))
     }
 
     fn signed<T: Signed<T>>(&self) -> T {
-        match try_signed(&mut self.bytes()) {
-            Some(t) => t,
-            None => panic!("Unable to parse \"{self}\""),
-        }
+        let str = self.as_ref();
+        try_signed(&mut str.bytes()).unwrap_or_else(|| panic!("Unable to parse \"{str}\""))
     }
 
     fn iter_unsigned<T: Unsigned<T>>(&self) -> ParseUnsigned<'_, T> {
-        ParseUnsigned { bytes: self.bytes(), phantom: PhantomData }
+        ParseUnsigned { bytes: self.as_ref().bytes(), phantom: PhantomData }
     }
 
     fn iter_signed<T: Signed<T>>(&self) -> ParseSigned<'_, T> {
-        ParseSigned { bytes: self.bytes(), phantom: PhantomData }
+        ParseSigned { bytes: self.as_ref().bytes(), phantom: PhantomData }
     }
 }
 
 impl<T: Unsigned<T>> Iterator for ParseUnsigned<'_, T> {
     type Item = T;
 
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (lower, upper) = self.bytes.size_hint();
         (lower / 3, upper.map(|u| u / 3))
     }
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         try_unsigned(&mut self.bytes)
     }
@@ -85,11 +83,13 @@ impl<T: Unsigned<T>> Iterator for ParseUnsigned<'_, T> {
 impl<T: Signed<T>> Iterator for ParseSigned<'_, T> {
     type Item = T;
 
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (lower, upper) = self.bytes.size_hint();
         (lower / 3, upper.map(|u| u / 3))
     }
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         try_signed(&mut self.bytes)
     }
@@ -97,31 +97,26 @@ impl<T: Signed<T>> Iterator for ParseSigned<'_, T> {
 
 fn try_unsigned<T: Unsigned<T>>(bytes: &mut Bytes<'_>) -> Option<T> {
     let mut n = loop {
-        let byte = bytes.next()?;
-        let digit = byte.to_decimal();
-
+        let digit = bytes.next()?.to_decimal();
         if digit < 10 {
             break T::from(digit);
         }
     };
 
-    loop {
-        let Some(byte) = bytes.next() else { break Some(n) };
+    for byte in bytes {
         let digit = byte.to_decimal();
-
-        if digit < 10 {
-            n = T::TEN * n + T::from(digit);
-        } else {
-            break Some(n);
+        if digit >= 10 {
+            break;
         }
+        n = T::TEN * n + T::from(digit);
     }
+
+    Some(n)
 }
 
 fn try_signed<T: Signed<T>>(bytes: &mut Bytes<'_>) -> Option<T> {
     let (mut n, negative) = loop {
-        let byte = bytes.next()?;
-        let digit = byte.to_decimal();
-
+        let digit = bytes.next()?.to_decimal();
         if digit == 253 {
             break (T::ZERO, true);
         }
@@ -130,16 +125,13 @@ fn try_signed<T: Signed<T>>(bytes: &mut Bytes<'_>) -> Option<T> {
         }
     };
 
-    loop {
-        let Some(byte) = bytes.next() else {
-            break Some(if negative { -n } else { n });
-        };
+    for byte in bytes {
         let digit = byte.to_decimal();
-
-        if digit < 10 {
-            n = T::TEN * n + T::from(digit);
-        } else {
-            break Some(if negative { -n } else { n });
+        if digit >= 10 {
+            break;
         }
+        n = T::TEN * n + T::from(digit);
     }
+
+    Some(if negative { -n } else { n })
 }
